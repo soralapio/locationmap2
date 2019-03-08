@@ -1,0 +1,33 @@
+.MapImage {
+  margin: 5vh auto;
+  border: 1px solid white;
+  background-color: rgba(240, 240, 255, 0.5);
+  background: url('../../img/floorplan.jpg') no-repeat;
+  position: relative;
+}
+
+.TagCount {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  text-align: right;
+}
+
+.TimeSlider {
+  width: 800px;
+}
+
+.Tag {
+  width: 20px;
+  height: 20px;
+  border: 3px solid black;
+  border-radius: 20px;
+  position: absolute;
+  top: -10px;
+  left: -10px;
+}
+
+.CurrentTime {
+  color: white;
+  margin-right: 20px;
+}
