@@ -4,6 +4,8 @@ import dfn from 'date-fns';
 import autobind from 'auto-bind';
 import './Map.css';
 
+import ZoomPan from '../ZoomPan/ZoomPan';
+
 import { tags, positionsByTag, mapWidth, mapHeight } from '../../stores/data';
 
 // binary search, positions are sorted
@@ -37,8 +39,21 @@ const lerp = (prevPos, nextPos, time) => {
   };
 };
 
+const Avatar = React.memo(({ person }) => (
+  <div
+    className="PersonTag"
+    style={{
+      backgroundImage: `url(${person.avatarURL})`,
+    }}
+  >
+    <div className="PersonName">{person.fullName}</div>
+  </div>
+));
+
 const Tag = ({ tag, x, y }) => (
-  <div className="Tag" style={{ backgroundColor: tag.color, transform: `translate(${x}px, ${y}px)` }} />
+  <div className="Tag" style={{ transform: `translate(${x}px, ${y}px)` }}>
+    {tag.type === 'person' && <Avatar person={tag} />}
+  </div>
 );
 
 class Map extends Component {
@@ -138,36 +153,48 @@ class Map extends Component {
   render() {
     return (
       <div>
-        <div
-          className="MapImage"
-          style={{ width: mapWidth, height: mapHeight, backgroundSize: `${mapWidth}px ${mapHeight}px` }}
-          onClick={(event) => {
-            console.log(event.pageX - event.target.offsetLeft, event.pageY - event.target.offsetTop);
-          }}
-        >
-          {_.map(this.state.currentPositions, (pos, tagName) =>
-            pos ? <Tag key={tagName} tag={tags[tagName]} x={pos.x} y={pos.y} /> : null,
-          )}
-          <div className="TagCount">Tags on map: {_.compact(_.values(this.state.currentPositions)).length}</div>
+        <div className="MapContainer">
+          <ZoomPan>
+            <div
+              className="MapImage"
+              style={{
+                width: mapWidth,
+                height: mapHeight,
+                backgroundSize: `${mapWidth}px ${mapHeight}px`,
+                left: `calc(50% - ${mapWidth / 2}px)`,
+                top: `calc(50% - ${mapHeight / 2 + 30}px)`,
+              }}
+              onClick={(event) => {
+                console.log(event.pageX - event.target.offsetLeft, event.pageY - event.target.offsetTop);
+              }}
+            >
+              {_.map(this.state.currentPositions, (pos, tagName) =>
+                pos ? <Tag key={tagName} tag={tags[tagName]} x={pos.x} y={pos.y} /> : null,
+              )}
+            </div>
+          </ZoomPan>
         </div>
-        <input
-          className="TimeSlider"
-          type="range"
-          value={this.state.currentTime}
-          min={this.state.startTime}
-          max={this.state.endTime}
-          onChange={this.handleTimeSliderChange}
-        />
-        <div>
-          <span className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</span>
-          <select value={this.state.timeMultiplier} onChange={this.handleTimeMultiplierChange}>
-            {_.map(this.timeMultiplierOptions, (multiplier) => (
-              <option key={multiplier} value={multiplier}>
-                {multiplier}x
-              </option>
-            ))}
-          </select>
-          <button onClick={this.togglePlaying}>{this.state.playing ? 'pause' : 'play'}</button>
+        <div className="ControlPanel">
+          <div className="TagCount">Tags on map: {_.compact(_.values(this.state.currentPositions)).length}</div>
+          <input
+            className="TimeSlider"
+            type="range"
+            value={this.state.currentTime}
+            min={this.state.startTime}
+            max={this.state.endTime}
+            onChange={this.handleTimeSliderChange}
+          />
+          <div>
+            <span className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</span>
+            <select value={this.state.timeMultiplier} onChange={this.handleTimeMultiplierChange}>
+              {_.map(this.timeMultiplierOptions, (multiplier) => (
+                <option key={multiplier} value={multiplier}>
+                  {multiplier}x
+                </option>
+              ))}
+            </select>
+            <button onClick={this.togglePlaying}>{this.state.playing ? 'pause' : 'play'}</button>
+          </div>
         </div>
       </div>
     );

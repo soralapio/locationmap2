@@ -1,6 +1,8 @@
 import dfn from 'date-fns';
 import _ from 'lodash';
 
+import fakeUsers from './users.json'; // from randomuser.me
+
 export const mapWidth = 800;
 export const mapHeight = 600;
 
@@ -10,7 +12,8 @@ const maxX = 747;
 const maxY = 534;
 
 const MAX_LOCATION_COUNT = 1000;
-const TAG_COUNT = 200;
+const PERSON_COUNT = 20;
+const FURNITURE_COUNT = 10;
 
 const MIN_GAP_MS = 500;
 const MAX_GAP_MS = 1000 * 60; //minute
@@ -27,22 +30,26 @@ const getRandomXorY = (prev, min, max) => {
 
 const getColor = (ratio) => `hsla(${ratio * 360}, 100%, 50%, 0.66`;
 
-const types = ['person', 'furniture'];
-export const tags = _.reduce(
-  _.times(TAG_COUNT),
+const people = _.reduce(
+  _.times(PERSON_COUNT),
   (res, nah, i) => {
-    const tagName = `tag${i + 1}`;
+    const tagName = `person${i + 1}`;
+
+    const user = fakeUsers[i];
 
     res[tagName] = {
       tagName,
-      type: types[i % types.length],
-      color: getColor(i / TAG_COUNT),
+      type: 'person',
+      fullName: `${_.capitalize(user.name.first)} ${_.capitalize(user.name.last)}`,
+      avatarURL: user.picture.medium,
     };
 
     return res;
   },
   {},
 );
+
+export const tags = { ...people };
 
 export const positionsByTag = _.reduce(
   tags,

@@ -1,9 +1,17 @@
-.MapImage {
-  margin: 5vh auto;
-  border: 1px solid white;
-  background-color: rgba(240, 240, 255, 0.5);
-  background: url('../../img/floorplan.jpg') no-repeat;
+.MapContainer {
+  background-color: rgba(230, 245, 255, 1);
   position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.ZoomPanContainer {
+  position: absolute;
+}
+
+.MapImage {
+  background: url('../../img/floorplan.jpg') no-repeat;
+  position: absolute;
 }
 
 .TagCount {
@@ -13,19 +21,79 @@
   text-align: right;
 }
 
+.Tag {
+  width: 0px;
+  height: 0px;
+  position: absolute;
+}
+
+.Tag:hover {
+  z-index: 1;
+}
+
+.PersonTag {
+  position: absolute;
+  border-radius: 16px;
+  width: 32px;
+  height: 32px;
+  background-size: 32px 32px;
+  top: -16px;
+  left: -16px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  background-position: center center;
+  transition: transform 160ms ease-in-out;
+}
+
+.PersonTag:hover {
+  transform: scale(1.5);
+}
+
+.PersonTag:hover .PersonName {
+  display: block;
+}
+
+.PersonTag .PersonName {
+  position: absolute;
+  white-space: nowrap;
+  color: white;
+  font-size: 11px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 3px 5px;
+  border-radius: 3px;
+  top: 6px;
+  left: 36px;
+  display: none;
+  z-index: 10000;
+}
+
+.PersonTag .PersonName:after {
+  right: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-right-color: rgba(0, 0, 0, 0.7);
+  border-width: 4px;
+  margin-top: -4px;
+}
+
+.ControlPanel {
+  border-top: 1px solid black;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: white;
+  height: 60px;
+}
+
 .TimeSlider {
   width: 800px;
 }
 
-.Tag {
-  width: 20px;
-  height: 20px;
-  border: 3px solid black;
-  border-radius: 20px;
-  position: absolute;
-  top: -10px;
-  left: -10px;
-}
 
 .CurrentTime {
   color: white;
