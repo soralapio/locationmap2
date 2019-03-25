@@ -16,7 +16,7 @@ class ZoomPan extends Component {
       mouseY: null,
     };
 
-    this.zoomMultiplier = 1.2;
+    this.zoomMultiplier = 1.3;
     this.minZ = 0.3;
     this.maxZ = 3;
 
@@ -83,6 +83,7 @@ class ZoomPan extends Component {
         onMouseDown={this.handleMapMouseDown}
         onMouseMove={this.handleMapMouseMove}
         onMouseUp={this.handleMapMouseUp}
+        onDoubleClick={this.handleZoomInClick}
       >
         <div className="ZoomPanPlane" style={style}>
           {this.props.children}

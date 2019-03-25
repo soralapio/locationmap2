@@ -6,12 +6,15 @@ import './Map.css';
 
 import ZoomPan from '../ZoomPan/ZoomPan';
 
-import { tags, positionsByTag, mapWidth, mapHeight } from '../../stores/data';
+import { extractPropsFromStores } from '../../utils';
+import store from '../../stores';
+
+const SECONDS_SINCE_LAST_POSITION_THRESHOLD = 45;
 
 // binary search, positions are sorted
 const findPositionIndexAtTime = (positions, time) => {
-  if (_.first(positions).timestamp > time) return null;
-  if (_.last(positions).timestamp <= time) return _.last(positions);
+  if (_.first(positions).time > time) return null;
+  if (_.last(positions).time <= time) return _.last(positions);
 
   let min = 0;
   let max = positions.length - 1;
@@ -19,9 +22,9 @@ const findPositionIndexAtTime = (positions, time) => {
     const idx = _.floor((min + max) / 2);
     const pos = positions[idx];
     const nextPos = positions[idx + 1];
-    if (pos.timestamp <= time && nextPos.timestamp > time) {
+    if (pos.time <= time && nextPos.time > time) {
       return idx;
-    } else if (pos.timestamp <= time) {
+    } else if (pos.time <= time) {
       min = idx + 1;
     } else {
       max = idx - 1;
@@ -32,7 +35,7 @@ const findPositionIndexAtTime = (positions, time) => {
 const lerp = (prevPos, nextPos, time) => {
   if (!prevPos) return null;
   if (!nextPos) return prevPos;
-  const ratio = (nextPos.timestamp - time) / (nextPos.timestamp - prevPos.timestamp);
+  const ratio = (nextPos.time - time) / (nextPos.time - prevPos.time);
   return {
     x: ratio * prevPos.x + (1 - ratio) * nextPos.x,
     y: ratio * prevPos.y + (1 - ratio) * nextPos.y,
@@ -43,16 +46,16 @@ const Avatar = React.memo(({ person }) => (
   <div
     className="PersonTag"
     style={{
-      backgroundImage: `url(${person.avatarURL})`,
+      backgroundImage: `url(${_.get(person, 'avatarURL', `https://api.adorable.io/avatars/150/${person.id}.png`)})`,
     }}
   >
-    <div className="PersonName">{person.fullName}</div>
+    <div className="PersonName">{_.get(person, 'fullName', _.get(person, 'id', 'unk'))}</div>
   </div>
 ));
 
 const Tag = ({ tag, x, y }) => (
   <div className="Tag" style={{ transform: `translate(${x}px, ${y}px)` }}>
-    {tag.type === 'person' && <Avatar person={tag} />}
+    {_.get(tag, 'type') === 'person' && <Avatar person={tag} />}
   </div>
 );
 
@@ -60,14 +63,11 @@ class Map extends Component {
   constructor(props) {
     super(props);
 
-    const minTime = _.min(_.map(positionsByTag, (positions) => _.first(positions).timestamp));
-    const maxTime = _.max(_.map(positionsByTag, (positions) => _.last(positions).timestamp));
-
     this.state = {
-      currentTime: minTime,
-      startTime: minTime,
-      endTime: maxTime,
-      currentPositions: this.positionsAtTime(minTime),
+      currentTime: 0,
+      startTime: 0,
+      endTime: 0,
+      currentPositions: [],
       playing: false,
       timeMultiplier: 10,
     };
@@ -79,19 +79,52 @@ class Map extends Component {
     autobind(this);
   }
 
-  positionsAtTime(time) {
+  componentDidMount() {
+    this.handleNewPositions(this.props);
+  }
+
+  componentWillUpdate(nextProps) {
+    this.handleNewPositions(nextProps);
+  }
+
+  handleNewPositions(props) {
+    const minTime = _.min(_.map(props.positions, (positions) => _.first(positions).time));
+    const maxTime = _.max(_.map(props.positions, (positions) => _.last(positions).time));
+
+    if (minTime && maxTime && (minTime !== this.state.startTime || maxTime !== this.state.endTime)) {
+      this.setState({
+        currentTime: minTime,
+        startTime: minTime,
+        endTime: maxTime,
+        currentPositions: this.positionsAtTime(minTime, props),
+      });
+    }
+  }
+
+  positionsAtTime(time, props = this.props) {
     return _.reduce(
-      positionsByTag,
-      (res, positions, tagName) => {
+      props.positions,
+      (res, positions, tagId) => {
         const index = findPositionIndexAtTime(positions, time);
+
+        // not found
         if (index === null) {
-          res[tagName] = null;
+          res[tagId] = null;
           return res;
         }
 
         const prevPos = positions[index];
         const nextPos = positions[index + 1];
-        res[tagName] = lerp(prevPos, nextPos, time);
+
+        const secondsSinceLastPos = (time - _.get(prevPos, 'time', time)) / 1000;
+        // too long since last position was received
+        if (secondsSinceLastPos > SECONDS_SINCE_LAST_POSITION_THRESHOLD) {
+          res[tagId] = null;
+          return res;
+        }
+
+        // interpolate position
+        res[tagId] = lerp(prevPos, nextPos, time);
 
         return res;
       },
@@ -150,7 +183,15 @@ class Map extends Component {
     this.setState({ timeMultiplier });
   }
 
+  handleDateChange(event) {
+    store.selectedDate = event.target.value;
+    store.loadData();
+  }
+
   render() {
+    const mapWidth = store.mapSize.width;
+    const mapHeight = store.mapSize.height;
+    //console.log(JSON.parse(JSON.stringify(this.props.positions || null)));
     return (
       <div>
         <div className="MapContainer">
@@ -162,20 +203,23 @@ class Map extends Component {
                 height: mapHeight,
                 backgroundSize: `${mapWidth}px ${mapHeight}px`,
                 left: `calc(50% - ${mapWidth / 2}px)`,
-                top: `calc(50% - ${mapHeight / 2 + 30}px)`,
+                top: `calc(50% - ${mapHeight / 1.5}px)`,
               }}
               onClick={(event) => {
                 console.log(event.pageX - event.target.offsetLeft, event.pageY - event.target.offsetTop);
               }}
             >
-              {_.map(this.state.currentPositions, (pos, tagName) =>
-                pos ? <Tag key={tagName} tag={tags[tagName]} x={pos.x} y={pos.y} /> : null,
+              {_.map(this.state.currentPositions, (pos, tagId) =>
+                pos ? <Tag key={tagId} tag={store.tags[tagId]} x={pos.x} y={pos.y} /> : null,
               )}
             </div>
           </ZoomPan>
         </div>
         <div className="ControlPanel">
           <div className="TagCount">Tags on map: {_.compact(_.values(this.state.currentPositions)).length}</div>
+          <button className="PlayButton " onClick={this.togglePlaying}>
+            {this.state.playing ? '❚❚' : '▶'}
+          </button>
           <input
             className="TimeSlider"
             type="range"
@@ -184,21 +228,30 @@ class Map extends Component {
             max={this.state.endTime}
             onChange={this.handleTimeSliderChange}
           />
-          <div>
-            <span className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</span>
-            <select value={this.state.timeMultiplier} onChange={this.handleTimeMultiplierChange}>
-              {_.map(this.timeMultiplierOptions, (multiplier) => (
-                <option key={multiplier} value={multiplier}>
-                  {multiplier}x
-                </option>
-              ))}
-            </select>
-            <button onClick={this.togglePlaying}>{this.state.playing ? 'pause' : 'play'}</button>
-          </div>
+          <div className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</div>
+          <select value={this.state.timeMultiplier} onChange={this.handleTimeMultiplierChange}>
+            {_.map(this.timeMultiplierOptions, (multiplier) => (
+              <option key={multiplier} value={multiplier}>
+                {multiplier}x
+              </option>
+            ))}
+          </select>
+          <select className="DateSelector" value={this.props.selectedDate} onChange={this.handleDateChange}>
+            {_.map(store.availableDates, (date) => (
+              <option key={date} value={date}>
+                {date}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     );
   }
 }
 
-export default Map;
+const propsFromStore = {
+  positions: 'positions',
+  selectedDate: 'selectedDate',
+};
+
+export default extractPropsFromStores(propsFromStore)(Map);

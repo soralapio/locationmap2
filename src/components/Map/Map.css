@@ -10,15 +10,8 @@
 }
 
 .MapImage {
-  background: url('../../img/floorplan.jpg') no-repeat;
+  background: url('../../img/floorplan.png') no-repeat;
   position: absolute;
-}
-
-.TagCount {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  text-align: right;
 }
 
 .Tag {
@@ -37,6 +30,7 @@
   width: 32px;
   height: 32px;
   background-size: 32px 32px;
+  background-color: rgba(0,0,0, 0.5);
   top: -16px;
   left: -16px;
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -90,12 +84,32 @@
   height: 60px;
 }
 
+.PlayButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  background-color: #2ca5b5;
+  color: white;
+  margin: 8px;
+  border: none;
+}
+
 .TimeSlider {
   width: 800px;
 }
 
-
 .CurrentTime {
-  color: white;
+  width: 80px;
+  display: inline-block;
+  font-size: 12px;
+  color: black;
   margin-right: 20px;
+  font-family: monospace;
+}
+.TagCount {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 12px;
+  text-align: right;
 }
