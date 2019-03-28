@@ -11,27 +11,6 @@ import store from '../../stores';
 
 const SECONDS_SINCE_LAST_POSITION_THRESHOLD = 45;
 
-// binary search, positions are sorted
-const findPositionIndexAtTime = (positions, time) => {
-  if (_.first(positions).time > time) return null;
-  if (_.last(positions).time <= time) return _.last(positions);
-
-  let min = 0;
-  let max = positions.length - 1;
-  while (true) {
-    const idx = _.floor((min + max) / 2);
-    const pos = positions[idx];
-    const nextPos = positions[idx + 1];
-    if (pos.time <= time && nextPos.time > time) {
-      return idx;
-    } else if (pos.time <= time) {
-      min = idx + 1;
-    } else {
-      max = idx - 1;
-    }
-  }
-};
-
 const lerp = (prevPos, nextPos, time) => {
   if (!prevPos) return null;
   if (!nextPos) return prevPos;
@@ -47,6 +26,7 @@ const Avatar = React.memo(({ person }) => (
     className="PersonTag"
     style={{
       backgroundImage: `url(${_.get(person, 'avatarURL', `https://api.adorable.io/avatars/150/${person.id}.png`)})`,
+      transform: `scale(${1 / store.mapScale})`,
     }}
   >
     <div className="PersonName">{_.get(person, 'fullName', _.get(person, 'id', 'unk'))}</div>
@@ -55,7 +35,7 @@ const Avatar = React.memo(({ person }) => (
 
 const Tag = ({ tag, x, y }) => (
   <div className="Tag" style={{ transform: `translate(${x}px, ${y}px)` }}>
-    {_.get(tag, 'type') === 'person' && <Avatar person={tag} />}
+    {_.get(tag, 'type') === 'person' && <Avatar person={{ ...tag, x, y }} />}
   </div>
 );
 
@@ -67,12 +47,13 @@ class Map extends Component {
       currentTime: 0,
       startTime: 0,
       endTime: 0,
-      currentPositions: [],
+      currentPositions: {},
+      currentIlluminance: {},
       playing: false,
       timeMultiplier: 10,
     };
 
-    this.timeMultiplierOptions = [1, 10, 100, 1000];
+    this.timeMultiplierOptions = [1, 10, 100, 1000, 5000];
 
     this.prevRafTime = null;
 
@@ -80,14 +61,14 @@ class Map extends Component {
   }
 
   componentDidMount() {
-    this.handleNewPositions(this.props);
+    this.handleNewProps(this.props);
   }
 
   componentWillUpdate(nextProps) {
-    this.handleNewPositions(nextProps);
+    this.handleNewProps(nextProps);
   }
 
-  handleNewPositions(props) {
+  handleNewProps(props) {
     const minTime = _.min(_.map(props.positions, (positions) => _.first(positions).time));
     const maxTime = _.max(_.map(props.positions, (positions) => _.last(positions).time));
 
@@ -97,6 +78,7 @@ class Map extends Component {
         startTime: minTime,
         endTime: maxTime,
         currentPositions: this.positionsAtTime(minTime, props),
+        currentIlluminance: this.illuminanceAtTime(minTime, props),
       });
     }
   }
@@ -105,16 +87,15 @@ class Map extends Component {
     return _.reduce(
       props.positions,
       (res, positions, tagId) => {
-        const index = findPositionIndexAtTime(positions, time);
-
+        const index = _.sortedIndexBy(positions, { time }, 'time');
         // not found
-        if (index === null) {
+        if (index === 0) {
           res[tagId] = null;
           return res;
         }
 
-        const prevPos = positions[index];
-        const nextPos = positions[index + 1];
+        const prevPos = positions[index - 1];
+        const nextPos = index < positions.length ? positions[index] : null;
 
         const secondsSinceLastPos = (time - _.get(prevPos, 'time', time)) / 1000;
         // too long since last position was received
@@ -132,10 +113,30 @@ class Map extends Component {
     );
   }
 
+  illuminanceAtTime(time, props = this.props) {
+    return _.reduce(
+      props.illuminance,
+      (res, values, id) => {
+        const index = _.sortedIndexBy(values, { time }, 'time');
+
+        // not found
+        if (index === 0) {
+          res[id] = null;
+          return res;
+        }
+
+        res[id] = values[index - 1];
+        return res;
+      },
+      {},
+    );
+  }
+
   setCurrentTime(time) {
     const currentTime = time > this.state.endTime ? this.state.startTime : time;
     const currentPositions = this.positionsAtTime(currentTime);
-    this.setState({ currentPositions, currentTime });
+    const currentIlluminance = this.illuminanceAtTime(currentTime);
+    this.setState({ currentPositions, currentIlluminance, currentTime });
   }
 
   handleTimeSliderChange(event) {
@@ -191,10 +192,20 @@ class Map extends Component {
   render() {
     const mapWidth = store.mapSize.width;
     const mapHeight = store.mapSize.height;
-    //console.log(JSON.parse(JSON.stringify(this.props.positions || null)));
+
+    const currentMeanIlluminance = _.mean(_.map(this.state.currentIlluminance, 'value')) || 0;
+    const illuminanceVal = _.clamp(currentMeanIlluminance / store.meanIlluminance, 0.1, 1);
+    const transitionSpeed = _.max([2000 / this.state.timeMultiplier, 96]);
+
     return (
       <div>
-        <div className="MapContainer">
+        <div
+          className="MapContainer"
+          style={{
+            backgroundColor: `rgba(0, 0, 40, ${1 - illuminanceVal})`,
+            transition: `background-color ${transitionSpeed}ms linear`,
+          }}
+        >
           <ZoomPan>
             <div
               className="MapImage"
@@ -203,10 +214,12 @@ class Map extends Component {
                 height: mapHeight,
                 backgroundSize: `${mapWidth}px ${mapHeight}px`,
                 left: `calc(50% - ${mapWidth / 2}px)`,
-                top: `calc(50% - ${mapHeight / 1.5}px)`,
+                top: `calc(50% - ${mapHeight / 1.8}px)`,
+                transform: `scale(${store.mapScale})`,
               }}
               onClick={(event) => {
-                console.log(event.pageX - event.target.offsetLeft, event.pageY - event.target.offsetTop);
+                const rect = event.target.getBoundingClientRect();
+                console.log(event.pageX - rect.left, event.pageY - rect.top);
               }}
             >
               {_.map(this.state.currentPositions, (pos, tagId) =>
@@ -251,6 +264,7 @@ class Map extends Component {
 
 const propsFromStore = {
   positions: 'positions',
+  illuminance: 'illuminance',
   selectedDate: 'selectedDate',
 };
 

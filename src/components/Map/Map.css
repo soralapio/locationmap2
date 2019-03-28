@@ -1,5 +1,5 @@
 .MapContainer {
-  background-color: rgba(230, 245, 255, 1);
+  background-color: rgb(0, 0, 40);
   position: relative;
   width: 100vw;
   height: 100vh;
@@ -10,7 +10,7 @@
 }
 
 .MapImage {
-  background: url('../../img/floorplan.png') no-repeat;
+  background: url('../../img/floorplan.svg') no-repeat;
   position: absolute;
 }
 
@@ -113,3 +113,4 @@
   font-size: 12px;
   text-align: right;
 }
+
