@@ -249,7 +249,7 @@ class Map extends Component {
               </option>
             ))}
           </select>
-          <select className="DateSelector" value={this.props.selectedDate} onChange={this.handleDateChange}>
+          <select className="DateSelector" value={this.props.selectedDate || ''} onChange={this.handleDateChange}>
             {_.map(store.availableDates, (date) => (
               <option key={date} value={date}>
                 {date}

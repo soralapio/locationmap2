@@ -1,10 +1,8 @@
 import _ from 'lodash';
 import { action, observable, computed, decorate, runInAction } from 'mobx';
 import { createTransformer } from 'mobx-utils';
+import dfn from 'date-fns';
 import axios from 'axios';
-
-// TODO: better way to see what data is available
-const availableDates = _.range(5, 15).map((date) => `2019-3-${date}`);
 
 const imageSize = {
   width: 2000,
@@ -51,9 +49,9 @@ const getMapSize = (targetWidth) => {
 class Store {
   mapSize = imageSize;
   mapScale = mapScale;
-  availableDates = availableDates;
+  availableDates = [];
 
-  selectedDate = _.last(availableDates);
+  selectedDate = null;
   positions = {};
   tags = {};
   illuminance = {};
@@ -71,14 +69,35 @@ class Store {
     return _.meanBy(this.illuminance[id], 'value');
   });
 
+  loadDateRange = async () => {
+    this.loadingData = true;
+    try {
+      const result = await axios.get('/api/daterange/');
+      let nextDate = new Date(result.data.min);
+      const lastDate = new Date(result.data.max);
+      const availableDates = [];
+      do {
+        availableDates.push(dfn.format(nextDate, 'YYYY-MM-DD'));
+        nextDate = dfn.addDays(nextDate, 1);
+      } while (dfn.isBefore(nextDate, lastDate) || dfn.isSameDay(nextDate, lastDate));
+
+      this.availableDates = availableDates;
+      this.selectedDate = _.last(availableDates);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.loadingData = false;
+    }
+  };
+
   loadData = async () => {
+    if (this.selectedDate === null) return;
     this.loadingData = true;
     try {
       const params = {
         date: this.selectedDate,
       };
       const result = await axios.get('/api/data/', { params });
-      console.log(result.data);
       this.setPositions(_.get(result, 'data.employee_location', {}));
       this.illuminance = _.get(result.data, 'illuminance', {});
     } catch (error) {
