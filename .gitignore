@@ -3,6 +3,7 @@
 /data/
 /tools/dev-db/dev.db
 .env
+/backend/serverlog.log
 
 # dependencies
 /node_modules

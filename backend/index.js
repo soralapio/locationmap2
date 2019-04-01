@@ -22,7 +22,7 @@ function convertTimesToMilliseconds(array) {
 app.get('/api/daterange', (req, res) => {
   getAvailableDateRange()
     .then((daterange) => {
-      console.log(daterange);
+      logger.info(daterange);
       res.json(daterange);
     })
     .catch((error) => {
@@ -42,7 +42,7 @@ app.get('/api/data', (req, res) => {
   const startTs = dfn.startOfDay(new Date(date));
   const endTs = dfn.endOfDay(new Date(date));
 
-  console.log('start', startTs, ' - end', endTs);
+  logger.info('start', startTs, ' - end', endTs);
 
   const promises = _.map(types, (type) => getData(type, startTs, endTs));
   Promise.all(promises)
