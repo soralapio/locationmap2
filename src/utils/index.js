@@ -46,3 +46,13 @@ export const extractPropsFromStores = (propsFromStore) => (WrappedComponent) =>
     );
     return <WrappedComponent {...props} {...extractedProps} />;
   });
+
+export const getMouseXInElement = (mouseX, element) => {
+  let left = 0;
+  try {
+    left = element.getBoundingClientRect().left;
+  } catch (error) {
+    /* noop */
+  }
+  return mouseX - left;
+};

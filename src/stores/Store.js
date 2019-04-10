@@ -17,7 +17,8 @@ class Store {
   }
   mapSize = imageSize;
   mapScale = mapScale;
-  availableDates = [];
+  minDate = null;
+  maxDate = null;
 
   selectedDate = null;
   positions = {};
@@ -35,16 +36,10 @@ class Store {
     this.loadingData = true;
     try {
       const result = await request.get('/api/daterange/');
-      let nextDate = new Date(result.data.min);
-      const lastDate = new Date(result.data.max);
-      const availableDates = [];
-      do {
-        availableDates.push(dfn.format(nextDate, 'YYYY-MM-DD'));
-        nextDate = dfn.addDays(nextDate, 1);
-      } while (dfn.isBefore(nextDate, lastDate) || dfn.isSameDay(nextDate, lastDate));
+      this.minDate = new Date(result.data.min);
+      this.maxDate = new Date(result.data.max);
 
-      this.availableDates = availableDates;
-      this.selectedDate = _.last(availableDates);
+      this.selectedDate = dfn.format(this.maxDate, 'YYYY-MM-DD');
     } catch (error) {
       console.error(error);
     } finally {
@@ -130,6 +125,8 @@ export default decorate(Store, {
   illuminance: observable,
   loadingPositions: observable,
   loggedIn: observable,
+  minDate: observable,
+  maxDate: observable,
   loadPositions: action,
   setPositions: action,
   login: action,

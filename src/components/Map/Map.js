@@ -2,9 +2,15 @@ import React, { Component } from 'react';
 import _ from 'lodash';
 import dfn from 'date-fns';
 import autobind from 'auto-bind';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
 import './Map.css';
 
+import { MdPlayArrow, MdPause } from 'react-icons/md';
+import { FaCalendarAlt } from 'react-icons/fa';
+
 import ZoomPan from '../ZoomPan/ZoomPan';
+import Seekbar from '../Seekbar/Seekbar';
 
 import { extractPropsFromStores, pixelPosToRawPos } from '../../utils';
 import store from '../../stores';
@@ -133,16 +139,11 @@ class Map extends Component {
   }
 
   setCurrentTime(time) {
-    const currentTime = time > this.state.endTime ? this.state.startTime : time;
+    const loopedTime = time > this.state.endTime ? this.state.startTime : time;
+    const currentTime = Math.max(loopedTime, this.state.startTime);
     const currentPositions = this.positionsAtTime(currentTime);
     const currentIlluminance = this.illuminanceAtTime(currentTime);
     this.setState({ currentPositions, currentIlluminance, currentTime });
-  }
-
-  handleTimeSliderChange(event) {
-    const currentTime = parseInt(event.target.value, 10);
-
-    this.setCurrentTime(currentTime);
   }
 
   togglePlaying() {
@@ -184,8 +185,8 @@ class Map extends Component {
     this.setState({ timeMultiplier });
   }
 
-  handleDateChange(event) {
-    store.selectedDate = event.target.value;
+  setDate(day) {
+    store.selectedDate = dfn.format(day, 'YYYY-MM-DD');
     store.loadData();
   }
 
@@ -196,6 +197,14 @@ class Map extends Component {
     const currentMeanIlluminance = _.mean(_.map(this.state.currentIlluminance, 'value')) || 0;
     const illuminanceVal = _.clamp(currentMeanIlluminance / store.meanIlluminance, 0.1, 1);
     const transitionSpeed = _.max([2000 / this.state.timeMultiplier, 96]);
+
+    const dayPickerProps = {
+      firstDayOfWeek: 1,
+      disabledDays: (date) => dfn.isBefore(date, store.minDate) || dfn.isAfter(date, store.maxDate),
+      todayButton: 'Go to Today',
+      fromMonth: store.minDate,
+      toMonth: new Date(),
+    };
 
     return (
       <div>
@@ -231,34 +240,38 @@ class Map extends Component {
             </div>
           </ZoomPan>
         </div>
-        <div className="ControlPanel">
-          <div className="TagCount">Tags on map: {_.compact(_.values(this.state.currentPositions)).length}</div>
-          <button className="PlayButton " onClick={this.togglePlaying}>
-            {this.state.playing ? '❚❚' : '▶'}
-          </button>
-          <input
-            className="TimeSlider"
-            type="range"
-            value={this.state.currentTime}
-            min={this.state.startTime}
-            max={this.state.endTime}
-            onChange={this.handleTimeSliderChange}
+        <div className="DayPickerContainer">
+          <DayPickerInput
+            value={this.props.selectedDate || ''}
+            onDayChange={this.setDate}
+            dayPickerProps={dayPickerProps}
           />
-          <div className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</div>
-          <select value={this.state.timeMultiplier} onChange={this.handleTimeMultiplierChange}>
+          <FaCalendarAlt />
+        </div>
+        <div className="ControlPanel">
+          <button className="PlayButton" onClick={this.togglePlaying}>
+            {this.state.playing ? <MdPause /> : <MdPlayArrow />}
+          </button>
+          <select
+            className="TimeMultiplierSelect"
+            value={this.state.timeMultiplier}
+            onChange={this.handleTimeMultiplierChange}
+          >
             {_.map(this.timeMultiplierOptions, (multiplier) => (
               <option key={multiplier} value={multiplier}>
                 {multiplier}x
               </option>
             ))}
           </select>
-          <select className="DateSelector" value={this.props.selectedDate || ''} onChange={this.handleDateChange}>
-            {_.map(store.availableDates, (date) => (
-              <option key={date} value={date}>
-                {date}
-              </option>
-            ))}
-          </select>
+          <div className="SeekbarContainer">
+            <Seekbar
+              setTime={this.setCurrentTime}
+              start={this.state.startTime}
+              end={this.state.endTime}
+              currentTime={this.state.currentTime}
+            />
+          </div>
+          <div className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</div>
         </div>
       </div>
     );

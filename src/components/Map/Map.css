@@ -75,42 +75,99 @@
   margin-top: -4px;
 }
 
+.DayPickerContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: white;
+  height: 45px;
+  width: 135px;
+  border-bottom-left-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+}
+.DayPickerContainer input {
+  width: 108px;
+  margin-top: 5px;
+  height: 30px;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  box-sizing: content-box;
+  text-align: right;
+  padding-right: 12px;
+  background-color: transparent;
+  font-size: 14px;
+}
+.DayPickerContainer svg {
+  position: absolute;
+  left: 13px;
+  top: 14px;
+  color: #4a4a4a;
+  pointer-events: none;
+}
+.DayPickerContainer .DayPickerInput-OverlayWrapper {
+    position: absolute;
+    right: 290px;
+  }
+.DayPickerContainer .DayPickerInput-Overlay {
+    border-radius: 5px;
+  }
+
 .ControlPanel {
-  border-top: 1px solid black;
+  border-top: 1px solid rgba(0, 0, 0, 0);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
   position: fixed;
   bottom: 0;
   width: 100%;
   background-color: white;
-  height: 60px;
+  height: 51px;
 }
 
 .PlayButton {
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
+  width: 35px;
+  height: 35px;
+  border-radius: 5px;
   background-color: #2ca5b5;
   color: white;
   margin: 8px;
+  vertical-align: top;
+  display: inline-block;
   border: none;
+  font-size: 20px;
+}
+  .PlayButton svg {
+    margin-top: 4px;
+  }
+
+.TimeMultiplierSelect {
+  vertical-align: top;
+  margin-top: 8px;
+  margin-right: 8px;
+  width: 75px;
+  height: 35px;
+  font-size: 14px;
 }
 
-.TimeSlider {
-  width: 800px;
+.SeekbarContainer {
+  margin: 8px;
+  padding: 0;
+  position: relative;
+  display: inline-block;
+  height: 35px;
+  width: calc(100vw - 255px);
 }
 
 .CurrentTime {
+  vertical-align: top;
+  height: 35px;
+  margin-top: 8px;
+  line-height: 35px;
   width: 80px;
   display: inline-block;
-  font-size: 12px;
+  font-size: 14px;
   color: black;
   margin-right: 20px;
   font-family: monospace;
 }
-.TagCount {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  font-size: 12px;
-  text-align: right;
-}
+
 
