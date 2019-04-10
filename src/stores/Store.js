@@ -1,41 +1,14 @@
 import _ from 'lodash';
-import { action, observable, computed, decorate, runInAction } from 'mobx';
-import { createTransformer } from 'mobx-utils';
+import { action, observable, computed, decorate } from 'mobx';
 import dfn from 'date-fns';
 import request from '../utils/request';
+import { rawPosToPixelPos } from '../utils/index';
 
 const imageSize = {
   width: 2000,
   height: 740,
 };
 const mapScale = (window.innerWidth * 0.9) / imageSize.width;
-
-const rawBounds = {
-  minX: 5,
-  maxX: 32,
-  minY: 15,
-  maxY: 6, // y seems to be flipped, so maxY < minY
-};
-
-const pixBounds = {
-  minX: 64,
-  maxX: 1981,
-  minY: 82,
-  maxY: 692,
-};
-
-const mapToRange = (val, inMin, inMax, outMin, outMax) =>
-  ((val - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
-
-const rawPosToPixelPos = (rawX, rawY) => ({
-  x: mapToRange(rawX, rawBounds.minX, rawBounds.maxX, pixBounds.minX, pixBounds.maxX),
-  y: mapToRange(rawY, rawBounds.minY, rawBounds.maxY, pixBounds.minY, pixBounds.maxY),
-});
-
-const pixelPosToRawPos = (pixelX, pixelY) => ({
-  x: mapToRange(pixelX, pixBounds.minX, pixBounds.maxX, rawBounds.minX, rawBounds.maxX),
-  y: mapToRange(pixelY, pixBounds.minY, pixBounds.maxY, rawBounds.minY, rawBounds.maxY),
-});
 
 class Store {
   constructor() {
@@ -54,17 +27,9 @@ class Store {
 
   loggedIn = false;
 
-  get maxIlluminance() {
-    return _.max(_.map(this.illuminance, (arr) => _.maxBy(arr, 'value').value));
-  }
-
   get meanIlluminance() {
     return _.mean(_.flattenDeep(_.map(this.illuminance, (arr) => _.map(arr, 'value'))));
   }
-
-  meanIlluminanceForId = createTransformer((id) => {
-    return _.meanBy(this.illuminance[id], 'value');
-  });
 
   loadDateRange = async () => {
     this.loadingData = true;
@@ -170,37 +135,5 @@ export default decorate(Store, {
   login: action,
   logout: action,
   loadDateRange: action,
-  maxIlluminance: computed,
   meanIlluminance: computed,
 });
-
-/*
-export const tags = {
-  tag1: {
-    tagName: 'tag1',
-    type: 'person',
-    color: getColor(1),
-  },
-};
-
-const timeStep = 1000 * 60;
-export const positionsByTag = {
-  tag1: _.map(
-    [
-      { x: 66, y: 317 },
-      { x: 314, y: 313 },
-      { x: 302, y: 131 },
-      { x: 739, y: 117 },
-      { x: 735, y: 525 },
-      { x: 532, y: 334 },
-      { x: 368, y: 529 },
-      { x: 79, y: 527 },
-      { x: 62, y: 333 },
-    ],
-    (pos, idx) => ({
-      ...pos,
-      timestamp: dfn.addMilliseconds(startTime, timeStep * idx).valueOf(),
-    }),
-  ),
-};
-*/

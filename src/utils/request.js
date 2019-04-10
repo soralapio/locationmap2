@@ -15,7 +15,6 @@ const handleSuccess = (response) => response;
 
 const handleError = async (error) => {
   const errorStatus = _.get(error, 'response.status');
-  const errorData = _.get(error, 'response.data.error');
   if (errorStatus === 401) {
     store.loggedIn = false;
   }

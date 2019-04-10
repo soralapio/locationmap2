@@ -6,7 +6,7 @@ import './Map.css';
 
 import ZoomPan from '../ZoomPan/ZoomPan';
 
-import { extractPropsFromStores } from '../../utils';
+import { extractPropsFromStores, pixelPosToRawPos } from '../../utils';
 import store from '../../stores';
 
 const SECONDS_SINCE_LAST_POSITION_THRESHOLD = 45;
@@ -218,8 +218,11 @@ class Map extends Component {
                 transform: `scale(${store.mapScale})`,
               }}
               onClick={(event) => {
-                const rect = event.target.getBoundingClientRect();
-                console.log('x:', event.nativeEvent.offsetX, ', y:', event.nativeEvent.offsetY);
+                const pos = {
+                  x: event.nativeEvent.offsetX,
+                  y: event.nativeEvent.offsetY,
+                };
+                console.log(pos, ' - raw:', pixelPosToRawPos(pos.x, pos.y));
               }}
             >
               {_.map(this.state.currentPositions, (pos, tagId) =>
