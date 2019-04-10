@@ -3,8 +3,11 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const logger = require('./logger.js');
 const middleware = require('./middleware');
+const { checkEnvVariables, envConfig } = require('./util');
 
-const port = process.env.SERVER_PORT || 8001;
+checkEnvVariables();
+
+const port = process.env.SERVER_PORT || envConfig.SERVER_PORT;
 
 const router = express.Router();
 
