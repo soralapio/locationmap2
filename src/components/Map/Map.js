@@ -26,7 +26,7 @@ const Avatar = React.memo(({ person }) => (
     className="PersonTag"
     style={{
       backgroundImage: `url(${_.get(person, 'avatarURL', `https://api.adorable.io/avatars/150/${person.id}.png`)})`,
-      transform: `scale(${1 / store.mapScale})`,
+      transform: `scale(${Math.min(3, 1 / store.mapScale)})`,
     }}
   >
     <div className="PersonName">{_.get(person, 'fullName', _.get(person, 'id', 'unk'))}</div>
@@ -219,7 +219,7 @@ class Map extends Component {
               }}
               onClick={(event) => {
                 const rect = event.target.getBoundingClientRect();
-                console.log(event.pageX - rect.left, event.pageY - rect.top);
+                console.log('x:', event.nativeEvent.offsetX, ', y:', event.nativeEvent.offsetY);
               }}
             >
               {_.map(this.state.currentPositions, (pos, tagId) =>

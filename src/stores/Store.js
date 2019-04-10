@@ -16,35 +16,26 @@ const rawBounds = {
   minY: 15,
   maxY: 6, // y seems to be flipped, so maxY < minY
 };
+
 const pixBounds = {
-  minX: 41,
-  maxX: 1251,
-  minY: 77,
-  maxY: 442,
+  minX: 64,
+  maxX: 1981,
+  minY: 82,
+  maxY: 692,
 };
 
 const mapToRange = (val, inMin, inMax, outMin, outMax) =>
   ((val - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 
 const rawPosToPixelPos = (rawX, rawY) => ({
-  x: mapToRange(rawX, rawBounds.minX, rawBounds.maxX, pixBounds.minX, pixBounds.maxX) / mapScale,
-  y: mapToRange(rawY, rawBounds.minY, rawBounds.maxY, pixBounds.minY, pixBounds.maxY) / mapScale,
+  x: mapToRange(rawX, rawBounds.minX, rawBounds.maxX, pixBounds.minX, pixBounds.maxX),
+  y: mapToRange(rawY, rawBounds.minY, rawBounds.maxY, pixBounds.minY, pixBounds.maxY),
 });
 
 const pixelPosToRawPos = (pixelX, pixelY) => ({
   x: mapToRange(pixelX, pixBounds.minX, pixBounds.maxX, rawBounds.minX, rawBounds.maxX),
   y: mapToRange(pixelY, pixBounds.minY, pixBounds.maxY, rawBounds.minY, rawBounds.maxY),
 });
-
-// get map size at specified target width
-const getMapSize = (targetWidth) => {
-  const ratio = imageSize.width / imageSize.height;
-
-  return {
-    width: targetWidth,
-    height: targetWidth / ratio,
-  };
-};
 
 class Store {
   constructor() {
@@ -148,6 +139,8 @@ class Store {
     try {
       await request.get('/login');
       this.loggedIn = true;
+      await this.loadDateRange();
+      this.loadData();
     } catch (error) {
       console.error('No session');
       this.loggedIn = false;
