@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { action, observable, computed, decorate, runInAction } from 'mobx';
 import { createTransformer } from 'mobx-utils';
 import dfn from 'date-fns';
-import axios from 'axios';
+import request from '../utils/request';
 
 const imageSize = {
   width: 2000,
@@ -47,6 +47,10 @@ const getMapSize = (targetWidth) => {
 };
 
 class Store {
+  constructor() {
+    // for debug purposes:
+    window.logout = this.logout.bind(this);
+  }
   mapSize = imageSize;
   mapScale = mapScale;
   availableDates = [];
@@ -56,6 +60,8 @@ class Store {
   tags = {};
   illuminance = {};
   loadingData = false;
+
+  loggedIn = false;
 
   get maxIlluminance() {
     return _.max(_.map(this.illuminance, (arr) => _.maxBy(arr, 'value').value));
@@ -72,7 +78,7 @@ class Store {
   loadDateRange = async () => {
     this.loadingData = true;
     try {
-      const result = await axios.get('/api/daterange/');
+      const result = await request.get('/api/daterange/');
       let nextDate = new Date(result.data.min);
       const lastDate = new Date(result.data.max);
       const availableDates = [];
@@ -97,7 +103,7 @@ class Store {
       const params = {
         date: this.selectedDate,
       };
-      const result = await axios.get('/api/data/', { params });
+      const result = await request.get('/api/data/', { params });
       this.setPositions(_.get(result, 'data.employee_location', {}));
       this.illuminance = _.get(result.data, 'illuminance', {});
     } catch (error) {
@@ -137,6 +143,26 @@ class Store {
       {},
     );
   }
+
+  async checkLogin() {
+    try {
+      await request.get('/login');
+      this.loggedIn = true;
+    } catch (error) {
+      console.error('No session');
+      this.loggedIn = false;
+    }
+  }
+
+  async login() {
+    this.loggedIn = true;
+    await this.loadDateRange();
+    this.loadData();
+  }
+  logout() {
+    this.loggedIn = false;
+    request.delete('/login/');
+  }
 }
 
 export default decorate(Store, {
@@ -145,8 +171,12 @@ export default decorate(Store, {
   tags: observable,
   illuminance: observable,
   loadingPositions: observable,
+  loggedIn: observable,
   loadPositions: action,
   setPositions: action,
+  login: action,
+  logout: action,
+  loadDateRange: action,
   maxIlluminance: computed,
   meanIlluminance: computed,
 });
