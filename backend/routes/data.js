@@ -41,4 +41,16 @@ router.get('/', (req, res) => {
     });
 });
 
+router.get('/users', (req, res) => {
+  try {
+    const users = require('../users.json');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({
+      status: 500,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;

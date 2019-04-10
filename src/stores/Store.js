@@ -22,7 +22,7 @@ class Store {
 
   selectedDate = null;
   positions = {};
-  tags = {};
+  users = {};
   illuminance = {};
   loadingData = false;
 
@@ -64,6 +64,36 @@ class Store {
     }
   };
 
+  loadUsers = async () => {
+    try {
+      const result = await request.get('/api/data/users');
+      this.users = _.mapValues(result.data, (user, id) => ({ ...user, id, type: 'user' }));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  getTag(id) {
+    // TODO: figure out why this:
+    // the ids in the location data only have 8 numbers while the tag ids provided have 8
+    // se we try also the first 7
+    let user = this.users[id] || _.find(this.users, (user) => user.id.slice(0, -1) === String(id));
+
+    if (!user) {
+      user = {
+        name: `Unknown (${id})`,
+        type: 'user',
+        id,
+      };
+    }
+
+    if (!user.imageURL) {
+      user.imageURL = `https://api.adorable.io/avatars/150/${user.id}.png`;
+    }
+
+    return user;
+  }
+
   setPositions(apiPositions) {
     const positions = _.reduce(
       apiPositions,
@@ -82,25 +112,19 @@ class Store {
     );
 
     this.positions = positions;
-    this.tags = _.reduce(
-      this.positions,
-      (res, arr, id) => {
-        res[id] = {
-          type: 'person',
-          id,
-        };
-        return res;
-      },
-      {},
-    );
+  }
+
+  async loadInitialData() {
+    this.loadUsers();
+    await this.loadDateRange();
+    this.loadData();
   }
 
   async checkLogin() {
     try {
       await request.get('/login');
       this.loggedIn = true;
-      await this.loadDateRange();
-      this.loadData();
+      this.loadInitialData();
     } catch (error) {
       console.error('No session');
       this.loggedIn = false;
@@ -109,8 +133,7 @@ class Store {
 
   async login() {
     this.loggedIn = true;
-    await this.loadDateRange();
-    this.loadData();
+    this.loadInitialData();
   }
   logout() {
     this.loggedIn = false;
@@ -121,13 +144,14 @@ class Store {
 export default decorate(Store, {
   selectedDate: observable,
   positions: observable,
-  tags: observable,
+  users: observable,
   illuminance: observable,
   loadingPositions: observable,
   loggedIn: observable,
   minDate: observable,
   maxDate: observable,
-  loadPositions: action,
+  loadData: action,
+  loadInitialData: action,
   setPositions: action,
   login: action,
   logout: action,

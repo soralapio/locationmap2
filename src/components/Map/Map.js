@@ -27,21 +27,21 @@ const lerp = (prevPos, nextPos, time) => {
   };
 };
 
-const Avatar = React.memo(({ person }) => (
+const Avatar = React.memo(({ user }) => (
   <div
-    className="PersonTag"
+    className="UserTag"
     style={{
-      backgroundImage: `url(${_.get(person, 'avatarURL', `https://api.adorable.io/avatars/150/${person.id}.png`)})`,
+      backgroundImage: `url(${user.imageURL})`,
       transform: `scale(${Math.min(3, 1 / store.mapScale)})`,
     }}
   >
-    <div className="PersonName">{_.get(person, 'fullName', _.get(person, 'id', 'unk'))}</div>
+    <div className="UserName">{_.get(user, 'name', _.get(user, 'id', 'unk'))}</div>
   </div>
 ));
 
 const Tag = ({ tag, x, y }) => (
   <div className="Tag" style={{ transform: `translate(${x}px, ${y}px)` }}>
-    {_.get(tag, 'type') === 'person' && <Avatar person={{ ...tag, x, y }} />}
+    {_.get(tag, 'type') === 'user' && <Avatar user={{ ...tag, x, y }} />}
   </div>
 );
 
@@ -197,10 +197,10 @@ class Map extends Component {
     const currentMeanIlluminance = _.mean(_.map(this.state.currentIlluminance, 'value')) || 0;
     const illuminanceVal = _.clamp(currentMeanIlluminance / store.meanIlluminance, 0.1, 1);
     const transitionSpeed = _.max([2000 / this.state.timeMultiplier, 96]);
-
     const dayPickerProps = {
       firstDayOfWeek: 1,
-      disabledDays: (date) => dfn.isBefore(date, store.minDate) || dfn.isAfter(date, store.maxDate),
+      disabledDays: (date) =>
+        dfn.isBefore(date, dfn.startOfDay(store.minDate)) || dfn.isAfter(date, dfn.endOfDay(store.maxDate)),
       todayButton: 'Go to Today',
       fromMonth: store.minDate,
       toMonth: new Date(),
@@ -235,7 +235,7 @@ class Map extends Component {
               }}
             >
               {_.map(this.state.currentPositions, (pos, tagId) =>
-                pos ? <Tag key={tagId} tag={store.tags[tagId]} x={pos.x} y={pos.y} /> : null,
+                pos ? <Tag key={tagId} tag={store.getTag(tagId)} x={pos.x} y={pos.y} /> : null,
               )}
             </div>
           </ZoomPan>

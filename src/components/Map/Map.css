@@ -24,7 +24,7 @@
   z-index: 1;
 }
 
-.PersonTag {
+.UserTag {
   position: absolute;
   border-radius: 16px;
   width: 32px;
@@ -39,15 +39,15 @@
   transition: transform 160ms ease-in-out;
 }
 
-.PersonTag:hover {
+.UserTag:hover {
   transform: scale(1.5);
 }
 
-.PersonTag:hover .PersonName {
+.UserTag:hover .UserName {
   display: block;
 }
 
-.PersonTag .PersonName {
+.UserTag .UserName {
   position: absolute;
   white-space: nowrap;
   color: white;
@@ -61,7 +61,7 @@
   z-index: 10000;
 }
 
-.PersonTag .PersonName:after {
+.UserTag .UserName:after {
   right: 100%;
   top: 50%;
   border: solid transparent;

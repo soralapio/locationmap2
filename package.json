@@ -27,7 +27,7 @@
   "scripts": {
     "build": "react-scripts build",
     "dev": "react-scripts start",
-    "dev:backend": "nodemon ./backend/index.js | bunyan",
+    "dev:backend": "nodemon --ignore ./src ./backend/index.js | bunyan",
     "test": "react-scripts test",
     "serve": "node ./backend/index.js",
     "start": "NODE_ENV='development' concurrently --kill-others \"npm run dev\" \"npm run dev:backend\"",
