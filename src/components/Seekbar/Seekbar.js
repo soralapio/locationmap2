@@ -30,6 +30,7 @@ export default class Seekbar extends React.Component {
   }
 
   handleMouseMove(event) {
+    if (!this.seekbarElement.current) return;
     const { start, end, setTime } = this.props;
 
     const mouseX = getMouseXInElement(event.pageX, this.seekbarElement.current);

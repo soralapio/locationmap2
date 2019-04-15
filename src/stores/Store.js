@@ -23,7 +23,11 @@ class Store {
   selectedDate = null;
   positions = {};
   users = {};
+  tags = {};
   illuminance = {};
+  temperature = {};
+  humidity = {};
+  airpressure = {};
   loadingData = false;
 
   loggedIn = false;
@@ -57,6 +61,9 @@ class Store {
       const result = await request.get('/api/data/', { params });
       this.setPositions(_.get(result, 'data.employee_location', {}));
       this.illuminance = _.get(result.data, 'illuminance', {});
+      this.temperature = _.get(result.data, 'temperature', {});
+      this.humidity = _.get(result.data, 'humidity', {});
+      this.airpressure = _.get(result.data, 'airpressure', {});
     } catch (error) {
       console.error(error);
     } finally {
@@ -64,10 +71,11 @@ class Store {
     }
   };
 
-  loadUsers = async () => {
+  loadConfiguration = async () => {
     try {
-      const result = await request.get('/api/data/users');
-      this.users = _.mapValues(result.data, (user, id) => ({ ...user, id, type: 'user' }));
+      const result = await request.get('/api/data/config');
+      this.users = _.mapValues(result.data.users, (user, id) => ({ ...user, id, type: 'user' }));
+      this.tags = _.mapValues(result.data.tags, (tag, id) => ({ ...tag, id, ...rawPosToPixelPos(tag.x, tag.y) }));
     } catch (error) {
       console.error(error);
     }
@@ -115,7 +123,7 @@ class Store {
   }
 
   async loadInitialData() {
-    this.loadUsers();
+    this.loadConfiguration();
     await this.loadDateRange();
     this.loadData();
   }
@@ -145,7 +153,11 @@ export default decorate(Store, {
   selectedDate: observable,
   positions: observable,
   users: observable,
+  tags: observable,
   illuminance: observable,
+  temperature: observable,
+  humidity: observable,
+  airpressure: observable,
   loadingPositions: observable,
   loggedIn: observable,
   minDate: observable,

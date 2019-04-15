@@ -120,7 +120,7 @@
   bottom: 0;
   width: 100%;
   background-color: white;
-  height: 51px;
+  height: 90px;
 }
 
 .PlayButton {
@@ -170,4 +170,11 @@
   font-family: monospace;
 }
 
+.VisibilityToggles {
+  display: flex;
+  justify-content: space-between;
+}
 
+.VisibilityToggle {
+  padding: 8px;
+}

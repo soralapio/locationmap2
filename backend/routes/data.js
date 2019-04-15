@@ -41,10 +41,10 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/users', (req, res) => {
+router.get('/config', (req, res) => {
   try {
-    const users = require('../users.json');
-    res.json(users);
+    const config = require('../configuration.json');
+    res.json(config);
   } catch (error) {
     res.status(500).json({
       status: 500,

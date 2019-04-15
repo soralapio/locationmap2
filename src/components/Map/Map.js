@@ -14,6 +14,7 @@ import Seekbar from '../Seekbar/Seekbar';
 
 import { extractPropsFromStores, pixelPosToRawPos } from '../../utils';
 import store from '../../stores';
+import HeatMap from '../HeatMap/HeatMap';
 
 const SECONDS_SINCE_LAST_POSITION_THRESHOLD = 45;
 
@@ -55,6 +56,14 @@ class Map extends Component {
       endTime: 0,
       currentPositions: {},
       currentIlluminance: {},
+      currentTemperature: {},
+      currentAirpressure: {},
+      currentHumidity: {},
+      visibleHeatMaps: {
+        temperature: true,
+        airpressure: false,
+        humidity: false,
+      },
       playing: false,
       timeMultiplier: 10,
     };
@@ -79,12 +88,13 @@ class Map extends Component {
     const maxTime = _.max(_.map(props.positions, (positions) => _.last(positions).time));
 
     if (minTime && maxTime && (minTime !== this.state.startTime || maxTime !== this.state.endTime)) {
+      const currentValues = this.getCurrentValues(minTime, props);
       this.setState({
+        ...currentValues,
         currentTime: minTime,
         startTime: minTime,
         endTime: maxTime,
         currentPositions: this.positionsAtTime(minTime, props),
-        currentIlluminance: this.illuminanceAtTime(minTime, props),
       });
     }
   }
@@ -119,20 +129,33 @@ class Map extends Component {
     );
   }
 
-  illuminanceAtTime(time, props = this.props) {
+  valueAtTime(key, time, props = this.props) {
     return _.reduce(
-      props.illuminance,
+      props[key],
       (res, values, id) => {
-        const index = _.sortedIndexBy(values, { time }, 'time');
+        // The -1 because we want the previous one
+        const index = _.sortedIndexBy(values, { time }, 'time') - 1;
 
-        // not found
-        if (index === 0) {
-          res[id] = null;
+        // not found, return first one
+        if (index === -1) {
+          res[id] = values[0];
           return res;
         }
 
-        res[id] = values[index - 1];
+        res[id] = values[index];
         return res;
+      },
+      {},
+    );
+  }
+
+  getCurrentValues(time, props = this.props) {
+    const keys = ['illuminance', 'temperature', 'humidity', 'airpressure'];
+    return _.reduce(
+      keys,
+      (acc, key) => {
+        acc[`current${_.capitalize(key)}`] = this.valueAtTime(key, time, props);
+        return acc;
       },
       {},
     );
@@ -142,8 +165,8 @@ class Map extends Component {
     const loopedTime = time > this.state.endTime ? this.state.startTime : time;
     const currentTime = Math.max(loopedTime, this.state.startTime);
     const currentPositions = this.positionsAtTime(currentTime);
-    const currentIlluminance = this.illuminanceAtTime(currentTime);
-    this.setState({ currentPositions, currentIlluminance, currentTime });
+    const currentValues = this.getCurrentValues(currentTime);
+    this.setState({ ...currentValues, currentPositions, currentTime });
   }
 
   togglePlaying() {
@@ -190,12 +213,34 @@ class Map extends Component {
     store.loadData();
   }
 
+  renderHeatMaps() {
+    return (
+      <>
+        {this.state.visibleHeatMaps.temperature && (
+          <HeatMap values={this.state.currentTemperature} label="°C" gradient={{ '.5': '#00FF00' }} />
+        )}
+        {this.state.visibleHeatMaps.airpressure && (
+          <HeatMap values={this.state.currentAirpressure} label="mbar" gradient={{ '.5': '#8b8681' }} />
+        )}
+        {this.state.visibleHeatMaps.humidity && (
+          <HeatMap
+            values={this.state.currentHumidity}
+            label="%"
+            transformValue={(val) => val * 100}
+            gradient={{ '.5': '#3db1ff' }}
+          />
+        )}
+      </>
+    );
+  }
+
   render() {
     const mapWidth = store.mapSize.width;
     const mapHeight = store.mapSize.height;
 
     const currentMeanIlluminance = _.mean(_.map(this.state.currentIlluminance, 'value')) || 0;
     const illuminanceVal = _.clamp(currentMeanIlluminance / store.meanIlluminance, 0.1, 1);
+
     const transitionSpeed = _.max([2000 / this.state.timeMultiplier, 96]);
     const dayPickerProps = {
       firstDayOfWeek: 1,
@@ -234,6 +279,7 @@ class Map extends Component {
                 console.log(pos, ' - raw:', pixelPosToRawPos(pos.x, pos.y));
               }}
             >
+              {this.renderHeatMaps()}
               {_.map(this.state.currentPositions, (pos, tagId) =>
                 pos ? <Tag key={tagId} tag={store.getTag(tagId)} x={pos.x} y={pos.y} /> : null,
               )}
@@ -272,6 +318,24 @@ class Map extends Component {
             />
           </div>
           <div className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</div>
+          <div className="VisibilityToggles">
+            {_.map(this.state.visibleHeatMaps, (isVisible, key) => (
+              <div key={key} className="VisibilityToggle">
+                <input
+                  id={key}
+                  type="checkbox"
+                  checked={isVisible}
+                  onChange={() => {
+                    this.setState((oldState) => {
+                      const visibleHeatMaps = { ...oldState.visibleHeatMaps, [key]: !isVisible };
+                      return { visibleHeatMaps };
+                    });
+                  }}
+                />
+                <label htmlFor={key}>{_.capitalize(key)}</label>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -281,6 +345,9 @@ class Map extends Component {
 const propsFromStore = {
   positions: 'positions',
   illuminance: 'illuminance',
+  temperature: 'temperature',
+  humidity: 'humidity',
+  airpressure: 'airpressure',
   selectedDate: 'selectedDate',
 };
 
