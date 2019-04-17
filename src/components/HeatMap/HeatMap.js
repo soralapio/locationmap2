@@ -40,12 +40,16 @@ export default class HeatMap extends Component {
     });
   }
 
-  componentWillUpdate() {
-    this.heatmap.setData({
-      min: 0,
-      max: 300,
-      data: this.getDataWithTags(),
-    });
+  componentWillReceiveProps(nextProps) {
+    const oldValues = _.map(this.props.values, 'value');
+    const newValues = _.map(nextProps.values, 'value');
+    if (!_.isEqual(oldValues, newValues)) {
+      this.heatmap.setData({
+        min: 0,
+        max: 300,
+        data: this.getDataWithTags(),
+      });
+    }
   }
 
   getDataWithTags() {
