@@ -29,6 +29,19 @@ export default class Seekbar extends React.Component {
     this.previousPressedKey = null;
   }
 
+  componentDidMount() {
+    window.addEventListener('resize', this.handleWindowResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleWindowResize);
+  }
+
+  handleWindowResize() {
+    // Make sure seekbar stays in correct place on resize
+    this.forceUpdate();
+  }
+
   handleMouseMove(event) {
     if (!this.seekbarElement.current) return;
     const { start, end, setTime } = this.props;

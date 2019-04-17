@@ -172,7 +172,7 @@
 
 .VisibilityToggles {
   display: flex;
-  justify-content: space-between;
+  justify-content: left;
 }
 
 .VisibilityToggle {
