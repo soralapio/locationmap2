@@ -5,7 +5,7 @@ import _ from 'lodash';
 import store from '../stores';
 
 const client = axios.create({
-  baseURL: '/',
+  baseURL: '/map/',
   timeout: 30 * 1000, // 30 seconds
   paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
 });

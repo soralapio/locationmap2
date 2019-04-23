@@ -3,7 +3,7 @@ import _ from 'lodash';
 import autobind from 'auto-bind';
 
 import store from '../../stores';
-import axios from 'axios/index';
+import request from '../../utils/request';
 
 export default class LoginPage extends Component {
   constructor(props) {
@@ -31,7 +31,7 @@ export default class LoginPage extends Component {
   async login() {
     this.setState({ error: null });
     try {
-      const result = await axios.post('/login/', { password: this.state.password });
+      const result = await request.post('/login/', { password: this.state.password });
       console.log(result.data);
       store.login();
     } catch (error) {
