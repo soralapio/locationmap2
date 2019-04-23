@@ -4,7 +4,22 @@ const _ = require('lodash');
 const logger = require('../logger');
 
 const { getData } = require('../database.js');
-const { convertTimesToMilliseconds } = require('../util');
+
+// Some values are stored as strings in database but we want them to be floats:
+const parseValues = (array) => {
+  const floatKeys = ['x', 'y', 'value', 'accuracy'];
+  return _.map(array, (obj) => {
+    const parsedObj = {};
+    for (let key of floatKeys) {
+      if (_.has(obj, key)) {
+        parsedObj[key] = parseFloat(obj[key]);
+      }
+    }
+    // also convert time to unix-time milliseconds
+    parsedObj.time = new Date(obj.time).valueOf();
+    return { ...obj, ...parsedObj };
+  });
+};
 
 const router = express.Router();
 
@@ -23,9 +38,9 @@ router.get('/', (req, res) => {
     .then((results) => {
       const resultObj = _.reduce(
         results,
-        (acc, array, idx) => {
-          const msArray = convertTimesToMilliseconds(array);
-          acc[types[idx]] = _.groupBy(msArray, 'id');
+        (acc, rawArray, idx) => {
+          const array = parseValues(rawArray);
+          acc[types[idx]] = _.groupBy(array, 'id');
           return acc;
         },
         {},

@@ -1,10 +1,6 @@
 const _ = require('lodash');
 const logger = require('./logger');
 
-const convertTimesToMilliseconds = (array) => {
-  return _.map(array, (val) => ({ ...val, time: new Date(val.time).valueOf() }));
-};
-
 // Required vars are true
 // Optional vars without default are false
 // Optional vars with default are the default
@@ -42,7 +38,6 @@ const checkEnvVariables = () => {
 };
 
 module.exports = {
-  convertTimesToMilliseconds,
   checkEnvVariables,
   envConfig,
 };
