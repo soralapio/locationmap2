@@ -18,11 +18,12 @@
   width: 0px;
   height: 0px;
   position: absolute;
+
+  &:hover {
+    z-index: 1;
+  }
 }
 
-.Tag:hover {
-  z-index: 1;
-}
 
 .UserTag {
   position: absolute;
@@ -37,43 +38,57 @@
   box-sizing: border-box;
   background-position: center center;
   transition: transform 160ms ease-in-out;
+
+  &:hover {
+    transform: scale(1.5);
+    .UserName {
+      display: block;
+    }
+  }
+
+  .UserInitials {
+    color: white;
+    display: inline-block;
+    line-height: 32px;
+    width: 100%;
+    height: 100%;
+    margin-left: -1px;
+    margin-top: -1px;
+    border-radius: 16px;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .UserName {
+    position: absolute;
+    white-space: nowrap;
+    color: white;
+    font-size: 11px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 3px 5px;
+    border-radius: 3px;
+    top: 6px;
+    left: 36px;
+    display: none;
+    z-index: 10000;
+
+    &:after {
+      right: 100%;
+      top: 50%;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+      border-right-color: rgba(0, 0, 0, 0.7);
+      border-width: 4px;
+      margin-top: -4px;
+    }
+  }
 }
 
-.UserTag:hover {
-  transform: scale(1.5);
-}
 
-.UserTag:hover .UserName {
-  display: block;
-}
-
-.UserTag .UserName {
-  position: absolute;
-  white-space: nowrap;
-  color: white;
-  font-size: 11px;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 3px 5px;
-  border-radius: 3px;
-  top: 6px;
-  left: 36px;
-  display: none;
-  z-index: 10000;
-}
-
-.UserTag .UserName:after {
-  right: 100%;
-  top: 50%;
-  border: solid transparent;
-  content: " ";
-  height: 0;
-  width: 0;
-  position: absolute;
-  pointer-events: none;
-  border-right-color: rgba(0, 0, 0, 0.7);
-  border-width: 4px;
-  margin-top: -4px;
-}
 
 .DayPickerContainer {
   position: absolute;
@@ -85,33 +100,34 @@
   border-bottom-left-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0);
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
-}
-.DayPickerContainer input {
-  width: 108px;
-  margin-top: 5px;
-  height: 30px;
-  border: 1px solid lightgrey;
-  border-radius: 5px;
-  box-sizing: content-box;
-  text-align: right;
-  padding-right: 12px;
-  background-color: transparent;
-  font-size: 14px;
-}
-.DayPickerContainer svg {
-  position: absolute;
-  left: 13px;
-  top: 14px;
-  color: #4a4a4a;
-  pointer-events: none;
-}
-.DayPickerContainer .DayPickerInput-OverlayWrapper {
+
+  input {
+    width: 108px;
+    margin-top: 5px;
+    height: 30px;
+    border: 1px solid lightgrey;
+    border-radius: 5px;
+    box-sizing: content-box;
+    text-align: right;
+    padding-right: 12px;
+    background-color: transparent;
+    font-size: 14px;
+  }
+  svg {
+    position: absolute;
+    left: 13px;
+    top: 14px;
+    color: #4a4a4a;
+    pointer-events: none;
+  }
+  .DayPickerInput-OverlayWrapper {
     position: absolute;
     right: 290px;
   }
-.DayPickerContainer .DayPickerInput-Overlay {
+  .DayPickerInput-Overlay {
     border-radius: 5px;
   }
+}
 
 .ControlPanel {
   border-top: 1px solid rgba(0, 0, 0, 0);
@@ -134,10 +150,11 @@
   display: inline-block;
   border: none;
   font-size: 20px;
-}
-  .PlayButton svg {
+
+  svg {
     margin-top: 4px;
   }
+}
 
 .TimeMultiplierSelect {
   vertical-align: top;

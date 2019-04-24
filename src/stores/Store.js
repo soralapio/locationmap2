@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { action, observable, computed, decorate } from 'mobx';
+import { createTransformer } from 'mobx-utils';
 import dfn from 'date-fns';
 import request from '../utils/request';
 import { rawPosToPixelPos } from '../utils/index';
@@ -81,7 +82,7 @@ class Store {
     }
   };
 
-  getTag(id) {
+  getTag = createTransformer((id) => {
     // TODO: figure out why this:
     // the ids in the location data only have 8 numbers while the tag ids provided have 8
     // se we try also the first 7
@@ -89,18 +90,24 @@ class Store {
 
     if (!user) {
       user = {
-        name: `Unknown (${id})`,
+        name: null,
         type: 'user',
         id,
       };
     }
 
-    if (!user.imageURL) {
-      user.imageURL = `https://api.adorable.io/avatars/150/${user.id}.png`;
-    }
+    const hue = Math.floor(Math.abs(Math.sin(parseInt(user.id, 10))) * 360);
+    user.color = `hsla(${hue}, 85%, 45%, 1)`;
+
+    user.initials = user.name
+      ? user.name
+          .split(' ')
+          .map(_.first)
+          .join('')
+      : 'UNK';
 
     return user;
-  }
+  });
 
   setPositions(apiPositions) {
     const positions = _.reduce(

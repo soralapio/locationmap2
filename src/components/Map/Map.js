@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 import dfn from 'date-fns';
+import { observer } from 'mobx-react';
 import autobind from 'auto-bind';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
-import './Map.css';
+import './Map.scss';
 
 import { MdPlayArrow, MdPause } from 'react-icons/md';
 import { FaCalendarAlt } from 'react-icons/fa';
@@ -28,17 +29,32 @@ const lerp = (prevPos, nextPos, time) => {
   };
 };
 
-const Avatar = React.memo(({ user }) => (
-  <div
-    className="UserTag"
-    style={{
-      backgroundImage: `url(${user.imageURL})`,
-      transform: `scale(${Math.min(3, 1 / store.mapScale)})`,
-    }}
-  >
-    <div className="UserName">{_.get(user, 'name', _.get(user, 'id', 'unk'))}</div>
-  </div>
-));
+const Avatar = React.memo(({ user }) => {
+  const style = {
+    transform: `scale(${Math.min(3, 1 / store.mapScale)})`,
+  };
+  if (user.imageURL) {
+    style.backgroundImage = `url(${user.imageURL})`;
+  } else {
+    style.backgroundColor = user.color;
+  }
+
+  const maxFontSize = 22;
+  const initialsFontSize = Math.min(maxFontSize / (user.initials.length * 0.7), maxFontSize);
+
+  const userName = user.name ? user.name : `Unknown (${user.id})`;
+
+  return (
+    <div className="UserTag" style={style}>
+      {!user.imageURL && (
+        <span className="UserInitials" style={{ fontSize: `${initialsFontSize}px` }}>
+          {user.initials}
+        </span>
+      )}
+      <div className="UserName">{userName}</div>
+    </div>
+  );
+});
 
 const Tag = ({ tag, x, y }) => (
   <div className="Tag" style={{ transform: `translate(${x}px, ${y}px)` }}>
@@ -351,4 +367,4 @@ const propsFromStore = {
   selectedDate: 'selectedDate',
 };
 
-export default extractPropsFromStores(propsFromStore)(Map);
+export default extractPropsFromStores(propsFromStore)(observer(Map));
