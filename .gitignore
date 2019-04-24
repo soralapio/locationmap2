@@ -4,7 +4,7 @@
 /tools/dev-db/dev.db
 .env
 /backend/serverlog.log
-/backend/users.json
+/backend/configuration.json
 
 # dependencies
 /node_modules
