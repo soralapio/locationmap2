@@ -9,10 +9,10 @@ export const mapToRange = (val, inMin, inMax, outMin, outMax) =>
 
 // TODO: these need to come from some sort of config:
 const rawBounds = {
-  minX: 5,
-  maxX: 32,
-  minY: 15,
-  maxY: 6, // y seems to be flipped, so maxY < minY
+  minX: 6.71831,
+  maxX: 30.94366,
+  minY: 14.33607,
+  maxY: 6.5164, // y seems to be flipped, so maxY < minY
 };
 
 const pixBounds = {
