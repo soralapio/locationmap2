@@ -56,3 +56,25 @@ export const getMouseXInElement = (mouseX, element) => {
   }
   return mouseX - left;
 };
+
+/**
+ * Seedable pseudorandom number generator
+ * Can be seeded with whatever, seed is converted to number
+ * If no seed is provided, returns Math.random()
+ * @param seed
+ * @returns {number}
+ */
+
+export const sRandom = (seed) => {
+  if (_.isNil(seed)) return Math.random();
+  /* Force seed to string and calculate hashcode */
+  const seedStr = JSON.stringify(seed);
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    const c = seedStr.charCodeAt(i);
+    hash = (hash << 5) - hash + c;
+  }
+
+  const x = Math.sin(hash) * 10000;
+  return x - Math.floor(x);
+};

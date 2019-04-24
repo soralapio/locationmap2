@@ -4,6 +4,7 @@ import { createTransformer } from 'mobx-utils';
 import dfn from 'date-fns';
 import request from '../utils/request';
 import { rawPosToPixelPos } from '../utils/index';
+import { sRandom } from '../utils';
 
 const imageSize = {
   width: 2000,
@@ -97,8 +98,8 @@ class Store {
       };
     }
 
-    const hue = Math.floor(Math.abs(Math.sin(parseInt(user.id, 10))) * 360);
-    user.color = `hsla(${hue}, 85%, 45%, 1)`;
+    const hue = Math.round(sRandom(`${id}-${user.name}`) * 360);
+    user.color = `hsla(${hue}, 75%, 45%, 1)`;
 
     user.initials = user.name
       ? user.name
