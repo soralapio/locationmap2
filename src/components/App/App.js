@@ -8,6 +8,9 @@ import store from '../../stores';
 
 class App extends Component {
   render() {
+    if (store.loadingFirstTime) {
+      return <div className="Loading">Loading</div>;
+    }
     return <div className="App">{!store.loggedIn ? <LoginPage /> : <Map />}</div>;
   }
 }

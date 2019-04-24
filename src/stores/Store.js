@@ -29,6 +29,7 @@ class Store {
   temperature = {};
   humidity = {};
   airpressure = {};
+  loadingFirstTime = true;
   loadingData = false;
 
   loggedIn = false;
@@ -143,6 +144,8 @@ class Store {
     } catch (error) {
       console.error('No session');
       this.loggedIn = false;
+    } finally {
+      this.loadingFirstTime = false;
     }
   }
 
@@ -166,6 +169,7 @@ export default decorate(Store, {
   humidity: observable,
   airpressure: observable,
   loadingPositions: observable,
+  loadingFirstTime: observable,
   loggedIn: observable,
   minDate: observable,
   maxDate: observable,
