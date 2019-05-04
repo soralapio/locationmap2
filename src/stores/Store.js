@@ -5,6 +5,9 @@ import dfn from 'date-fns';
 import request from '../utils/request';
 import { rawPosToPixelPos } from '../utils/index';
 import { sRandom } from '../utils';
+import autobind from 'auto-bind';
+
+const LIVE_DELAY = 5000;
 
 const imageSize = {
   width: 2000,
@@ -16,20 +19,32 @@ class Store {
   constructor() {
     // for debug purposes:
     window.logout = this.logout.bind(this);
+    autobind(this);
+
+    this.liveInterval = null;
   }
   mapSize = imageSize;
   mapScale = mapScale;
   minDate = null;
   maxDate = null;
 
+  seekbarStartTime = 0;
+  seekbarEndTime = 0;
+  seekbarCurrentTime = 0;
+
+  isLive = false;
+  lastLiveLoadTime = null;
+
   selectedDate = null;
-  positions = {};
   users = {};
   tags = {};
+
+  positions = {};
   illuminance = {};
   temperature = {};
   humidity = {};
   airpressure = {};
+
   loadingFirstTime = true;
   loadingData = false;
 
@@ -54,7 +69,7 @@ class Store {
     }
   };
 
-  loadData = async () => {
+  loadDataForSelectedDate = async () => {
     if (this.selectedDate === null) return;
     this.loadingData = true;
     try {
@@ -62,17 +77,63 @@ class Store {
         date: this.selectedDate,
       };
       const result = await request.get('/api/data/', { params });
-      this.setPositions(_.get(result, 'data.employee_location', {}));
+
+      this.positions = this.parsePositions(_.get(result.data, 'employee_location', {}));
       this.illuminance = _.get(result.data, 'illuminance', {});
       this.temperature = _.get(result.data, 'temperature', {});
       this.humidity = _.get(result.data, 'humidity', {});
       this.airpressure = _.get(result.data, 'airpressure', {});
+
+      this.seekbarStartTime = dfn.startOfDay(this.selectedDate).valueOf();
+      this.seekbarEndTime = Math.min(dfn.endOfDay(this.selectedDate).valueOf(), Date.now() + LIVE_DELAY);
+      this.seekbarCurrentTime = this.seekbarStartTime;
     } catch (error) {
       console.error(error);
     } finally {
       this.loadingData = false;
     }
   };
+
+  loadLiveData = async () => {
+    if (this.lastLiveLoadTime === null) return;
+    const now = Date.now();
+    const params = {
+      start: this.lastLiveLoadTime,
+      end: now,
+    };
+    this.lastLiveLoadTime = now;
+
+    try {
+      const result = await request.get('/api/data/', { params });
+
+      this.appendData(this.positions, this.parsePositions(_.get(result.data, 'employee_location', {})));
+      this.appendData(this.illuminance, _.get(result.data, 'illuminance', {}));
+      this.appendData(this.temperature, _.get(result.data, 'temperature', {}));
+      this.appendData(this.humidity, _.get(result.data, 'humidity', {}));
+      this.appendData(this.airpressure, _.get(result.data, 'airpressure', {}));
+
+      this.seekbarEndTime = params.end;
+      this.seekbarCurrentTime = params.start;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  appendData(target, newData) {
+    _.reduce(
+      newData,
+      (acc, array, tagId) => {
+        if (_.has(acc, tagId)) {
+          acc[tagId] = [...acc[tagId], ...array];
+        } else {
+          acc[tagId] = array;
+        }
+
+        return acc;
+      },
+      target,
+    );
+  }
 
   loadConfiguration = async () => {
     try {
@@ -111,8 +172,8 @@ class Store {
     return user;
   });
 
-  setPositions(apiPositions) {
-    const positions = _.reduce(
+  parsePositions(apiPositions) {
+    return _.reduce(
       apiPositions,
       (res, rawPositions, id) => {
         res[id] = _.map(rawPositions, (pos) => {
@@ -127,14 +188,32 @@ class Store {
       },
       {},
     );
+  }
 
-    this.positions = positions;
+  goLive = async () => {
+    this.isLive = true;
+
+    this.selectedDate = dfn.format(new Date(), 'YYYY-MM-DD');
+    await this.loadDataForSelectedDate();
+
+    this.liveInterval = setInterval(this.loadLiveData, LIVE_DELAY);
+
+    this.lastLiveLoadTime = Date.now() - LIVE_DELAY;
+
+    await this.loadLiveData();
+  };
+
+  stopLive() {
+    this.isLive = false;
+    this.lastLiveLoadTime = null;
+    clearInterval(this.liveInterval);
+    this.liveInterval = null;
   }
 
   async loadInitialData() {
     this.loadConfiguration();
     await this.loadDateRange();
-    this.loadData();
+    this.loadDataForSelectedDate();
   }
 
   async checkLogin() {
@@ -161,10 +240,16 @@ class Store {
 }
 
 export default decorate(Store, {
+  seekbarStartTime: observable,
+  seekbarEndTime: observable,
+  seekbarCurrentTime: observable,
   selectedDate: observable,
+  loadingData: observable,
   positions: observable,
   users: observable,
   tags: observable,
+  isLive: observable,
+  lastLiveLoadTime: observable,
   illuminance: observable,
   temperature: observable,
   humidity: observable,
@@ -175,10 +260,13 @@ export default decorate(Store, {
   minDate: observable,
   maxDate: observable,
   loadData: action,
+  appendData: action,
   loadInitialData: action,
-  setPositions: action,
   login: action,
   logout: action,
   loadDateRange: action,
+  goLive: action,
+  stopLive: action,
+  loadLiveData: action,
   meanIlluminance: computed,
 });

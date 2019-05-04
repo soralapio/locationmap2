@@ -31,8 +31,7 @@ export default class LoginPage extends Component {
   async login() {
     this.setState({ error: null });
     try {
-      const result = await request.post('/login/', { password: this.state.password });
-      console.log(result.data);
+      await request.post('/login/', { password: this.state.password });
       store.login();
     } catch (error) {
       console.error(error);

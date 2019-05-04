@@ -25,11 +25,19 @@ const router = express.Router();
 
 // Get all data types at once
 router.get('/', (req, res) => {
-  const date = req.query.date;
-  const types = ['airpressure', 'humidity', 'illuminance', 'temperature', 'employee_location'];
+  let startTs = null;
+  let endTs = null;
 
-  const startTs = dfn.startOfDay(new Date(date));
-  const endTs = dfn.endOfDay(new Date(date));
+  if (_.has(req.query, 'date')) {
+    const date = req.query.date;
+    startTs = dfn.startOfDay(new Date(date));
+    endTs = dfn.endOfDay(new Date(date));
+  } else {
+    startTs = parseInt(req.query.start, 10);
+    endTs = parseInt(req.query.end, 10);
+  }
+
+  const types = ['airpressure', 'humidity', 'illuminance', 'temperature', 'employee_location'];
 
   logger.info('start', startTs, ' - end', endTs);
 

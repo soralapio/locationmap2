@@ -16,6 +16,7 @@ import Seekbar from '../Seekbar/Seekbar';
 import { extractPropsFromStores, pixelPosToRawPos } from '../../utils';
 import store from '../../stores';
 import HeatMap from '../HeatMap/HeatMap';
+import Preloader from '../Preloader/Preloader';
 
 const SECONDS_SINCE_LAST_POSITION_THRESHOLD = 45;
 
@@ -67,9 +68,6 @@ class Map extends Component {
     super(props);
 
     this.state = {
-      currentTime: 0,
-      startTime: 0,
-      endTime: 0,
       currentPositions: {},
       currentIlluminance: {},
       currentTemperature: {},
@@ -100,17 +98,11 @@ class Map extends Component {
   }
 
   handleNewProps(props) {
-    const minTime = _.min(_.map(props.positions, (positions) => _.first(positions).time));
-    const maxTime = _.max(_.map(props.positions, (positions) => _.last(positions).time));
-
-    if (minTime && maxTime && (minTime !== this.state.startTime || maxTime !== this.state.endTime)) {
-      const currentValues = this.getCurrentValues(minTime, props);
+    if (props.seekbarStartTime !== this.props.seekbarStartTime) {
+      const currentValues = this.getCurrentValues(props.seekbarStartTime, props);
       this.setState({
         ...currentValues,
-        currentTime: minTime,
-        startTime: minTime,
-        endTime: maxTime,
-        currentPositions: this.positionsAtTime(minTime, props),
+        currentPositions: this.positionsAtTime(props.seekbarStartTime, props),
       });
     }
   }
@@ -177,12 +169,22 @@ class Map extends Component {
     );
   }
 
+  handleSeekBarChange(time) {
+    if (store.isLive) {
+      store.stopLive();
+    }
+    this.setCurrentTime(time);
+  }
+
   setCurrentTime(time) {
-    const loopedTime = time > this.state.endTime ? this.state.startTime : time;
-    const currentTime = Math.max(loopedTime, this.state.startTime);
+    if (time > this.props.seekbarEndTime && !store.isLive) {
+      this.stopPlaying();
+    }
+    const currentTime = Math.min(time, this.props.seekbarEndTime);
     const currentPositions = this.positionsAtTime(currentTime);
     const currentValues = this.getCurrentValues(currentTime);
-    this.setState({ ...currentValues, currentPositions, currentTime });
+    store.seekbarCurrentTime = currentTime;
+    this.setState({ ...currentValues, currentPositions });
   }
 
   togglePlaying() {
@@ -200,7 +202,7 @@ class Map extends Component {
     }
 
     this.prevRafTime = rafTime;
-    this.setCurrentTime(this.state.currentTime + deltaTime * this.state.timeMultiplier);
+    this.setCurrentTime(this.props.seekbarCurrentTime + deltaTime * this.state.timeMultiplier);
 
     if (this.state.playing) {
       requestAnimationFrame(this.step);
@@ -215,6 +217,9 @@ class Map extends Component {
   }
 
   stopPlaying() {
+    if (store.isLive) {
+      store.stopLive();
+    }
     this.prevRafTime = null;
     this.setState({ playing: false });
   }
@@ -226,7 +231,14 @@ class Map extends Component {
 
   setDate(day) {
     store.selectedDate = dfn.format(day, 'YYYY-MM-DD');
-    store.loadData();
+    store.loadDataForSelectedDate();
+  }
+
+  async goLive() {
+    this.stopPlaying();
+    this.setState({ timeMultiplier: 1 });
+    await store.goLive();
+    this.startPlaying();
   }
 
   renderHeatMaps() {
@@ -255,9 +267,10 @@ class Map extends Component {
     const mapHeight = store.mapSize.height;
 
     const currentMeanIlluminance = _.mean(_.map(this.state.currentIlluminance, 'value')) || 0;
-    const illuminanceVal = _.clamp(currentMeanIlluminance / store.meanIlluminance, 0.1, 1);
 
+    const illuminanceVal = _.clamp(currentMeanIlluminance / store.meanIlluminance, 0.1, 1);
     const transitionSpeed = _.max([2000 / this.state.timeMultiplier, 96]);
+
     const dayPickerProps = {
       firstDayOfWeek: 1,
       disabledDays: (date) =>
@@ -276,6 +289,7 @@ class Map extends Component {
             transition: `background-color ${transitionSpeed}ms linear`,
           }}
         >
+          {store.loadingData && <Preloader />}
           <ZoomPan>
             <div
               className="MapImage"
@@ -295,14 +309,30 @@ class Map extends Component {
                 console.log(pos, ' - raw:', pixelPosToRawPos(pos.x, pos.y));
               }}
             >
-              {this.renderHeatMaps()}
-              {_.map(this.state.currentPositions, (pos, tagId) =>
-                pos ? <Tag key={tagId} tag={store.getTag(tagId)} x={pos.x} y={pos.y} /> : null,
+              {!this.props.loadingData && (
+                <React.Fragment>
+                  {this.renderHeatMaps()}
+                  {_.map(this.state.currentPositions, (pos, tagId) =>
+                    pos ? <Tag key={tagId} tag={store.getTag(tagId)} x={pos.x} y={pos.y} /> : null,
+                  )}
+                </React.Fragment>
               )}
             </div>
           </ZoomPan>
         </div>
-        <div className="DayPickerContainer">
+        <div className="TopRightControl">
+          <div className="LiveControl">
+            {store.isLive ? (
+              <div className="LiveIndicator">
+                <div className="LiveIndicatorCircle" />
+                LIVE
+              </div>
+            ) : (
+              <button className="GoLiveButton" onClick={this.goLive}>
+                Go live
+              </button>
+            )}
+          </div>
           <DayPickerInput
             value={this.props.selectedDate || ''}
             onDayChange={this.setDate}
@@ -311,13 +341,14 @@ class Map extends Component {
           <FaCalendarAlt />
         </div>
         <div className="ControlPanel">
-          <button className="PlayButton" onClick={this.togglePlaying}>
+          <button className="PlayButton" onClick={this.togglePlaying} disabled={store.loadingData}>
             {this.state.playing ? <MdPause /> : <MdPlayArrow />}
           </button>
           <select
             className="TimeMultiplierSelect"
             value={this.state.timeMultiplier}
             onChange={this.handleTimeMultiplierChange}
+            disabled={store.loadingData || store.isLive}
           >
             {_.map(this.timeMultiplierOptions, (multiplier) => (
               <option key={multiplier} value={multiplier}>
@@ -327,13 +358,14 @@ class Map extends Component {
           </select>
           <div className="SeekbarContainer">
             <Seekbar
-              setTime={this.setCurrentTime}
-              start={this.state.startTime}
-              end={this.state.endTime}
-              currentTime={this.state.currentTime}
+              disabled={store.loadingData}
+              setTime={this.handleSeekBarChange}
+              start={this.props.seekbarStartTime}
+              end={this.props.seekbarEndTime}
+              currentTime={this.props.seekbarCurrentTime}
             />
           </div>
-          <div className="CurrentTime">{dfn.format(new Date(this.state.currentTime), 'HH:mm:ss')}</div>
+          <div className="CurrentTime">{dfn.format(new Date(this.props.seekbarCurrentTime), 'HH:mm:ss')}</div>
           <div className="VisibilityToggles">
             {_.map(this.state.visibleHeatMaps, (isVisible, key) => (
               <div key={key} className="VisibilityToggle">
@@ -365,6 +397,9 @@ const propsFromStore = {
   humidity: 'humidity',
   airpressure: 'airpressure',
   selectedDate: 'selectedDate',
+  seekbarStartTime: 'seekbarStartTime',
+  seekbarEndTime: 'seekbarEndTime',
+  seekbarCurrentTime: 'seekbarCurrentTime',
 };
 
 export default extractPropsFromStores(propsFromStore)(observer(Map));

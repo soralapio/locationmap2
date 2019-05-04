@@ -3,6 +3,12 @@
   position: relative;
   width: 100vw;
   height: 100vh;
+
+  .Preloader {
+    position: absolute;
+    z-index: 10000;
+    margin-top: calc(50vh - 90px - 32px);
+  }
 }
 
 .ZoomPanContainer {
@@ -90,20 +96,24 @@
 
 
 
-.DayPickerContainer {
+.TopRightControl {
   position: absolute;
   top: 0;
   right: 0;
   background-color: white;
   height: 45px;
-  width: 135px;
+  width: 220px;
   border-bottom-left-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0);
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
 
+  .DayPickerInput {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+  }
   input {
     width: 108px;
-    margin-top: 5px;
     height: 30px;
     border: 1px solid lightgrey;
     border-radius: 5px;
@@ -115,7 +125,7 @@
   }
   svg {
     position: absolute;
-    left: 13px;
+    right: 106px;
     top: 14px;
     color: #4a4a4a;
     pointer-events: none;
@@ -128,6 +138,38 @@
     border-radius: 5px;
   }
 }
+
+.LiveControl {
+  position: absolute;
+  left: 6px;
+  top: 5px;
+  width: 78px;
+}
+
+.GoLiveButton {
+  height: 28px;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  box-sizing: content-box;
+  background-color: transparent;
+  font-size: 14px;
+}
+
+.LiveIndicator {
+  color: #d32125;
+  height: 30px;
+  line-height: 35px;
+}
+
+.LiveIndicatorCircle {
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  display: inline-block;
+  background-color: #d32125;
+  border-radius: 50%;
+}
+
 
 .ControlPanel {
   border-top: 1px solid rgba(0, 0, 0, 0);
@@ -153,6 +195,11 @@
 
   svg {
     margin-top: 4px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background-color: #7eb9cb;
   }
 }
 
