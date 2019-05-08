@@ -54,6 +54,25 @@ class Store {
     return _.mean(_.flattenDeep(_.map(this.illuminance, (arr) => _.map(arr, 'value'))));
   }
 
+  get liveStartTime() {
+    // get the time of latest data or max 5 minutes ago
+    let lastDataTime = dfn.subMinutes(new Date(), 5).valueOf();
+
+    const keys = ['positions', 'illuminance', 'temperature', 'humidity', 'airpressure'];
+
+    for (const key of keys) {
+      const data = _.get(this, key, {});
+      _.forEach(data, (array) => {
+        const lastTime = _.get(_.last(array), 'time', 0);
+        if (lastTime > lastDataTime) {
+          lastDataTime = lastTime;
+        }
+      });
+    }
+
+    return lastDataTime;
+  }
+
   loadDateRange = async () => {
     this.loadingData = true;
     try {
@@ -98,10 +117,12 @@ class Store {
     if (this.lastLiveLoadTime === null) return;
     const now = Date.now();
     const params = {
-      start: this.lastLiveLoadTime,
+      start: this.liveStartTime,
       end: now,
     };
     this.lastLiveLoadTime = now;
+
+    console.log(dfn.format(new Date(this.liveStartTime), 'DD.MM. HH:mm:ss'));
 
     try {
       const result = await request.get('/api/data/', { params });
@@ -269,4 +290,5 @@ export default decorate(Store, {
   stopLive: action,
   loadLiveData: action,
   meanIlluminance: computed,
+  liveStartTime: computed,
 });
