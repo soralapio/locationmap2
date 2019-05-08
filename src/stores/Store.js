@@ -145,9 +145,9 @@ class Store {
       newData,
       (acc, array, tagId) => {
         if (_.has(acc, tagId)) {
-          acc[tagId] = [...acc[tagId], ...array];
+          acc[tagId] = _.uniqBy([...acc[tagId], ...array], 'time');
         } else {
-          acc[tagId] = array;
+          acc[tagId] = _.uniqBy(array, 'time');
         }
 
         return acc;
