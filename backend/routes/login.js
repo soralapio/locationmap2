@@ -19,11 +19,13 @@ router.post('/', (req, res) => {
 
     if (testHash === process.env.PASSWORD_HASH) {
       req.session.loggedIn = true;
+      req.session.sessionTime = Date.now();
       res.json({
         message: 'Login succeeded',
       });
     } else {
       req.session.loggedIn = false;
+      req.session.sessionTime = undefined;
       res.status(401).json({
         status: 401,
         message: 'Login failed',
@@ -36,6 +38,7 @@ router.post('/', (req, res) => {
 
 router.delete('/', (req, res) => {
   req.session.loggedIn = false;
+  req.session.sessionTime = undefined;
   res.json({
     message: 'Logged out',
   });
