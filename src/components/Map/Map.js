@@ -7,6 +7,8 @@ import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import './Map.scss';
 
+import dataTypes from '../../datatypes.js';
+
 import { MdPlayArrow, MdPause } from 'react-icons/md';
 import { FaCalendarAlt } from 'react-icons/fa';
 
@@ -69,18 +71,16 @@ class Map extends Component {
 
     this.state = {
       currentPositions: {},
-      currentIlluminance: {},
-      currentTemperature: {},
-      currentAirpressure: {},
-      currentHumidity: {},
-      visibleHeatMaps: {
-        temperature: true,
-        airpressure: false,
-        humidity: false,
-      },
+      visibleHeatMaps: {},
       playing: false,
       timeMultiplier: 10,
     };
+
+    _.forEach(dataTypes, (dataType) => {
+      const currentKey = `current${_.capitalize(dataType)}`;
+      this.state[currentKey] = {};
+      this.state.visibleHeatMaps[dataType] = false;
+    });
 
     this.timeMultiplierOptions = [1, 10, 100, 1000, 5000];
 
@@ -158,9 +158,8 @@ class Map extends Component {
   }
 
   getCurrentValues(time, props = this.props) {
-    const keys = ['illuminance', 'temperature', 'humidity', 'airpressure'];
     return _.reduce(
-      keys,
+      dataTypes,
       (acc, key) => {
         acc[`current${_.capitalize(key)}`] = this.valueAtTime(key, time, props);
         return acc;
@@ -392,14 +391,12 @@ class Map extends Component {
 
 const propsFromStore = {
   positions: 'positions',
-  illuminance: 'illuminance',
-  temperature: 'temperature',
-  humidity: 'humidity',
-  airpressure: 'airpressure',
   selectedDate: 'selectedDate',
   seekbarStartTime: 'seekbarStartTime',
   seekbarEndTime: 'seekbarEndTime',
   seekbarCurrentTime: 'seekbarCurrentTime',
 };
+
+_.forEach(dataTypes, (dataType) => (propsFromStore[dataType] = dataType));
 
 export default extractPropsFromStores(propsFromStore)(observer(Map));

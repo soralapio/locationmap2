@@ -3,6 +3,7 @@ const dfn = require('date-fns');
 const _ = require('lodash');
 const logger = require('../logger');
 
+const dataTypes = require('../../src/datatypes.js');
 const { getData } = require('../database.js');
 
 // Some values are stored as strings in database but we want them to be floats:
@@ -37,7 +38,7 @@ router.get('/', (req, res) => {
     endTs = parseInt(req.query.end, 10);
   }
 
-  const types = ['airpressure', 'humidity', 'illuminance', 'temperature', 'employee_location'];
+  const types = ['employee_location', ...dataTypes];
 
   logger.info('start', startTs, ' - end', endTs);
 

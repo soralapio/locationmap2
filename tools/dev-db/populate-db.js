@@ -7,6 +7,8 @@ const _ = require('lodash');
 const dfn = require('date-fns');
 const singleLineLog = require('single-line-log').stdout;
 
+const dataTypes = require('../../src/datatypes.js');
+
 const db = new Database(path.join(__dirname, 'dev.db'));
 
 const dataFilePath = path.join(__dirname, '../../data');
@@ -164,9 +166,7 @@ const populateEmployeeLocation = async () => {
 };
 
 (async function main() {
-  const types = ['airpressure', 'humidity', 'illuminance', 'temperature'];
-
-  for (const type of types) {
+  for (const type of dataTypes) {
     const start = Date.now();
     await populate(type);
     console.log(`\nPopulated ${type} data in ${(Date.now() - start) / 1000} seconds`);

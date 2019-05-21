@@ -4,12 +4,13 @@ const dfn = require('date-fns');
 const _ = require('lodash');
 
 const knexfile = require('./knexfile');
+const dataTypes = require('../src/datatypes.js');
 
 const databaseConfig = process.env.NODE_ENV === 'production' ? knexfile.production : knexfile.development;
 
 const db = knex(databaseConfig);
 
-const tables = ['airpressure', 'humidity', 'illuminance', 'temperature', 'employee_location'];
+const tables = ['employee_location', ...dataTypes];
 
 const defaultTargetCols = ['time', 'value'];
 

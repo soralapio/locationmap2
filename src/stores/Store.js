@@ -7,6 +7,8 @@ import { rawPosToPixelPos } from '../utils/index';
 import { sRandom } from '../utils';
 import autobind from 'auto-bind';
 
+import dataTypes from '../datatypes.js';
+
 const LIVE_DELAY = 5000;
 
 const imageSize = {
@@ -22,6 +24,7 @@ class Store {
     autobind(this);
 
     this.liveInterval = null;
+    _.forEach(dataTypes, (dataType) => (this[dataType] = {}));
   }
   mapSize = imageSize;
   mapScale = mapScale;
@@ -40,10 +43,6 @@ class Store {
   tags = {};
 
   positions = {};
-  illuminance = {};
-  temperature = {};
-  humidity = {};
-  airpressure = {};
 
   loadingFirstTime = true;
   loadingData = false;
@@ -58,9 +57,9 @@ class Store {
     // get the time of latest data or max 5 minutes ago
     let lastDataTime = dfn.subMinutes(new Date(), 5).valueOf();
 
-    const keys = ['positions', 'illuminance', 'temperature', 'humidity', 'airpressure'];
+    const keys = ['positions', ...dataTypes];
 
-    for (const key of keys) {
+    _.forEach(keys, (key) => {
       const data = _.get(this, key, {});
       _.forEach(data, (array) => {
         const lastTime = _.get(_.last(array), 'time', 0);
@@ -68,7 +67,7 @@ class Store {
           lastDataTime = lastTime;
         }
       });
-    }
+    });
 
     return lastDataTime;
   }
@@ -98,10 +97,8 @@ class Store {
       const result = await request.get('/api/data/', { params });
 
       this.positions = this.parsePositions(_.get(result.data, 'employee_location', {}));
-      this.illuminance = _.get(result.data, 'illuminance', {});
-      this.temperature = _.get(result.data, 'temperature', {});
-      this.humidity = _.get(result.data, 'humidity', {});
-      this.airpressure = _.get(result.data, 'airpressure', {});
+
+      _.forEach(dataTypes, (dataType) => (this[dataType] = _.get(result.data, dataType, {})));
 
       this.seekbarStartTime = dfn.startOfDay(this.selectedDate).valueOf();
       this.seekbarEndTime = Math.min(dfn.endOfDay(this.selectedDate).valueOf(), Date.now() + LIVE_DELAY);
@@ -128,10 +125,9 @@ class Store {
       const result = await request.get('/api/data/', { params });
 
       this.appendData(this.positions, this.parsePositions(_.get(result.data, 'employee_location', {})));
-      this.appendData(this.illuminance, _.get(result.data, 'illuminance', {}));
-      this.appendData(this.temperature, _.get(result.data, 'temperature', {}));
-      this.appendData(this.humidity, _.get(result.data, 'humidity', {}));
-      this.appendData(this.airpressure, _.get(result.data, 'airpressure', {}));
+      _.forEach(dataTypes, (dataType) => {
+        this.appendData(this[dataType], _.get(result.data, dataType, {}));
+      });
 
       this.seekbarEndTime = params.end;
       this.seekbarCurrentTime = params.start;
@@ -260,7 +256,7 @@ class Store {
   }
 }
 
-export default decorate(Store, {
+const decorateKeys = {
   seekbarStartTime: observable,
   seekbarEndTime: observable,
   seekbarCurrentTime: observable,
@@ -271,10 +267,6 @@ export default decorate(Store, {
   tags: observable,
   isLive: observable,
   lastLiveLoadTime: observable,
-  illuminance: observable,
-  temperature: observable,
-  humidity: observable,
-  airpressure: observable,
   loadingPositions: observable,
   loadingFirstTime: observable,
   loggedIn: observable,
@@ -291,4 +283,7 @@ export default decorate(Store, {
   loadLiveData: action,
   meanIlluminance: computed,
   liveStartTime: computed,
-});
+};
+_.forEach(dataTypes, (dataType) => (decorateKeys[dataType] = observable));
+
+export default decorate(Store, decorateKeys);
