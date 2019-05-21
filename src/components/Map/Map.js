@@ -71,7 +71,11 @@ class Map extends Component {
 
     this.state = {
       currentPositions: {},
-      visibleHeatMaps: {},
+      visibleHeatMaps: {
+        temperature: true,
+        airpressure: false,
+        humidity: false,
+      },
       playing: false,
       timeMultiplier: 10,
     };
@@ -79,7 +83,6 @@ class Map extends Component {
     _.forEach(dataTypes, (dataType) => {
       const currentKey = `current${_.capitalize(dataType)}`;
       this.state[currentKey] = {};
-      this.state.visibleHeatMaps[dataType] = false;
     });
 
     this.timeMultiplierOptions = [1, 10, 100, 1000, 5000];

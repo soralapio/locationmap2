@@ -156,7 +156,11 @@ class Store {
     try {
       const result = await request.get('/api/data/config');
       this.users = _.mapValues(result.data.users, (user, id) => ({ ...user, id, type: 'user' }));
-      this.tags = _.mapValues(result.data.tags, (tag, id) => ({ ...tag, id, ...rawPosToPixelPos(tag.x, tag.y) }));
+      this.tags = _.mapValues(result.data.sensorLocations, (tag, id) => ({
+        ...tag,
+        id,
+        ...rawPosToPixelPos(tag.x, tag.y),
+      }));
     } catch (error) {
       console.error(error);
     }
