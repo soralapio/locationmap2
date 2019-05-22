@@ -7,7 +7,7 @@ import { rawPosToPixelPos } from '../utils/index';
 import { sRandom } from '../utils';
 import autobind from 'auto-bind';
 
-import dataTypes from '../datatypes.js';
+import sensorDataTables from '../sensorDataTables.js';
 
 const LIVE_DELAY = 5000;
 
@@ -24,7 +24,7 @@ class Store {
     autobind(this);
 
     this.liveInterval = null;
-    _.forEach(dataTypes, (dataType) => (this[dataType] = {}));
+    _.forEach(sensorDataTables, (dataType) => (this[dataType] = {}));
   }
   mapSize = imageSize;
   mapScale = mapScale;
@@ -57,7 +57,7 @@ class Store {
     // get the time of latest data or max 5 minutes ago
     let lastDataTime = dfn.subMinutes(new Date(), 5).valueOf();
 
-    const keys = ['positions', ...dataTypes];
+    const keys = ['positions', ...sensorDataTables];
 
     _.forEach(keys, (key) => {
       const data = _.get(this, key, {});
@@ -98,7 +98,7 @@ class Store {
 
       this.positions = this.parsePositions(_.get(result.data, 'employee_location', {}));
 
-      _.forEach(dataTypes, (dataType) => (this[dataType] = _.get(result.data, dataType, {})));
+      _.forEach(sensorDataTables, (dataType) => (this[dataType] = _.get(result.data, dataType, {})));
 
       this.seekbarStartTime = dfn.startOfDay(this.selectedDate).valueOf();
       this.seekbarEndTime = Math.min(dfn.endOfDay(this.selectedDate).valueOf(), Date.now() + LIVE_DELAY);
@@ -125,7 +125,7 @@ class Store {
       const result = await request.get('/api/data/', { params });
 
       this.appendData(this.positions, this.parsePositions(_.get(result.data, 'employee_location', {})));
-      _.forEach(dataTypes, (dataType) => {
+      _.forEach(sensorDataTables, (dataType) => {
         this.appendData(this[dataType], _.get(result.data, dataType, {}));
       });
 
@@ -288,6 +288,6 @@ const decorateKeys = {
   meanIlluminance: computed,
   liveStartTime: computed,
 };
-_.forEach(dataTypes, (dataType) => (decorateKeys[dataType] = observable));
+_.forEach(sensorDataTables, (dataType) => (decorateKeys[dataType] = observable));
 
 export default decorate(Store, decorateKeys);

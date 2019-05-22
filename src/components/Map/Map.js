@@ -7,7 +7,7 @@ import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import './Map.scss';
 
-import dataTypes from '../../datatypes.js';
+import sensorDataTables from '../../sensorDataTables.js';
 
 import { MdPlayArrow, MdPause } from 'react-icons/md';
 import { FaCalendarAlt } from 'react-icons/fa';
@@ -80,7 +80,7 @@ class Map extends Component {
       timeMultiplier: 10,
     };
 
-    _.forEach(dataTypes, (dataType) => {
+    _.forEach(sensorDataTables, (dataType) => {
       const currentKey = `current${_.capitalize(dataType)}`;
       this.state[currentKey] = {};
     });
@@ -162,7 +162,7 @@ class Map extends Component {
 
   getCurrentValues(time, props = this.props) {
     return _.reduce(
-      dataTypes,
+      sensorDataTables,
       (acc, key) => {
         acc[`current${_.capitalize(key)}`] = this.valueAtTime(key, time, props);
         return acc;
@@ -400,6 +400,6 @@ const propsFromStore = {
   seekbarCurrentTime: 'seekbarCurrentTime',
 };
 
-_.forEach(dataTypes, (dataType) => (propsFromStore[dataType] = dataType));
+_.forEach(sensorDataTables, (dataType) => (propsFromStore[dataType] = dataType));
 
 export default extractPropsFromStores(propsFromStore)(observer(Map));

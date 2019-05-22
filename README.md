@@ -2,11 +2,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Development on local machine
 
-In the project directory, you can run:
+In the project directory, you can run: `npm start`
 
-### `npm start`
-
-Runs the app in the development mode.<br>
+This runs the app in the development mode.<br>
 Open [http://localhost:8000](http://localhost:8000) to view it in the browser.
 
 The page will reload if you make edits.<br>
@@ -53,13 +51,15 @@ The app currently uses the following database tables to display sensor data on t
 4. illuminance
 5. temperature
 
-The last 4 of those use the same basic data structure and column names. Adding another database table that uses the same structure is as simple as adding the name of the table to the file `src/datatypes.js`.
+The last 4 of those are sensor data tables and use the same basic data structure and column names. Adding another database table that uses the same structure is as simple as adding the name of the table to the file `src/sensorDataTables.js`.
 
-If the table uses different column names, some customization is required. Take a look at the `getData`-function in `backend/database.js`.
+For example if we make another similar sensor table named 'foobar', just add the string 'foobar' to the sensorDataTables-file and the data will be available in the frontend store as `foobar` and in the Map-component under e.g. `this.state.currentFoobar`.
 
 To get the data to show up on the map, you need to create some kind of visualization function for it in the Map-component. Take a look at the `renderHeatMaps` function for an example.
 
 The locations of the sensors tag IDs should also be added to the `configuration.json` file.
+
+If the new table uses different column names, or otherwise requires different functionality, some customization is required. Take a look at the `getData`-function in `backend/database.js`.
 
 ## Deployment
 
@@ -91,7 +91,7 @@ The locations of the sensors tag IDs should also be added to the `configuration.
 
 2. Replace the PASSWORD_HASH line with the one printed by the script in the `.env` file in the project root.
 
-3. Restart the backend: `sudo pm2 restart "VirpaD Webapp"`
+3. Restart the backend: `sudo pm2 restart "VirpaD Webapp"`, the password is now y0ur_n3w_p4ssw0rd
 
 
 
