@@ -165,6 +165,68 @@ const populateEmployeeLocation = async () => {
   }
 };
 
+const users = [
+  {
+    userid: '31105280',
+    name: 'Rodrigo Borges',
+  },
+  {
+    userid: '31105291',
+    name: 'Timo Nummenmaa',
+    imageurl: 'http://www.sis.uta.fi/abcde/uploads/images/cropped/370.jpg',
+  },
+  {
+    userid: '31105303',
+    name: 'Miikka Lehtonen',
+  },
+  {
+    userid: '31105325',
+    name: 'Maria Stratigi',
+  },
+  {
+    userid: '31105336',
+    name: 'Xu Wen',
+  },
+  {
+    userid: '3129777',
+    name: 'Panu Asikanius',
+  },
+  {
+    userid: '31195921',
+    name: 'Petri Kotiranta',
+  },
+  {
+    userid: '3110527',
+    name: 'Jyrki Nummenmaa',
+  },
+  {
+    userid: '3110526',
+    name: 'Kostas Stefanidis',
+  },
+];
+
+const populateUsers = async () => {
+  console.log(`\nPopulating users`);
+  try {
+    db.prepare('BEGIN').run();
+
+    db.prepare(`DROP TABLE IF EXISTS users;`).run();
+    db.prepare(`CREATE TABLE users (userid TEXT, name TEXT, imageurl TEXT);`).run();
+
+    db.prepare(`CREATE INDEX user_userid ON users (userid)`).run();
+
+    const stmt = db.prepare(`INSERT INTO users (userid, name, imageurl) VALUES(?,?,?)`);
+
+    for (let row of users) {
+      stmt.run(row.userid, row.name, row.imageurl || null);
+    }
+
+    db.prepare('END').run();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 (async function main() {
   for (const type of sensorDataTables) {
     const start = Date.now();
@@ -175,4 +237,7 @@ const populateEmployeeLocation = async () => {
   const start = Date.now();
   await populateEmployeeLocation();
   console.log(`\nPopulated employee location data in ${(Date.now() - start) / 1000} seconds`);
+
+  await populateUsers();
+  console.log(`\nPopulated users`);
 })();

@@ -4,7 +4,7 @@ const _ = require('lodash');
 const logger = require('../logger');
 
 const sensorDataTables = require('../../src/sensorDataTables.js');
-const { getData } = require('../database.js');
+const { getData, getUsers } = require('../database.js');
 
 // Some values are stored as strings in database but we want them to be floats:
 const parseValues = (array) => {
@@ -65,9 +65,21 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/config', (req, res) => {
+router.get('/config', async (req, res) => {
   try {
     const config = require('../configuration.json');
+    const users = await getUsers();
+    config.users = _.reduce(
+      users,
+      (acc, user) => {
+        acc[user.userid] = {
+          name: user.name,
+          imageURL: user.imageurl,
+        };
+        return acc;
+      },
+      {},
+    );
     res.json(config);
   } catch (error) {
     res.status(500).json({

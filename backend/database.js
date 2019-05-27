@@ -31,6 +31,10 @@ function getData(tableName, startTs, endTs) {
     .whereBetween('last_measurement_time', [startDate, endDate]);
 }
 
+function getUsers() {
+  return db('users');
+}
+
 function getAvailableDateRange() {
   const promises = _.map(tables, (tableName) =>
     db(tableName)
@@ -49,5 +53,6 @@ function getAvailableDateRange() {
 module.exports = {
   db,
   getData,
+  getUsers,
   getAvailableDateRange,
 };
