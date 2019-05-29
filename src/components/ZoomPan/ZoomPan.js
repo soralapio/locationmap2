@@ -47,6 +47,7 @@ class ZoomPan extends Component {
   handleZoomInClick() {
     this.setState((oldState) => ({ z: _.min([oldState.z * this.zoomMultiplier, this.maxZ]) }));
   }
+
   handleZoomOutClick() {
     this.setState((oldState) => ({ z: _.max([oldState.z / this.zoomMultiplier, this.minZ]) }));
   }
@@ -56,6 +57,7 @@ class ZoomPan extends Component {
   }
 
   handleMapMouseMove(event) {
+    // Pan around if mouse is pressed
     if (!this.state.isMousePressed) return;
     const mouseX = event.pageX;
     const mouseY = event.pageY;

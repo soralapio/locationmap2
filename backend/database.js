@@ -6,19 +6,21 @@ const _ = require('lodash');
 const knexfile = require('./knexfile');
 const sensorDataTables = require('../src/sensorDataTables.js');
 
+// Switch database config based on env variable
 const databaseConfig = process.env.NODE_ENV === 'production' ? knexfile.production : knexfile.development;
 
+// Connect to database:
 const db = knex(databaseConfig);
 
-const tables = ['employee_location', ...sensorDataTables];
-
-const defaultTargetCols = ['time', 'value'];
-
+// Get data points from a table between two timestamps
 function getData(tableName, startTs, endTs) {
   const startDate = new Date(startTs).toISOString();
   const endDate = new Date(endTs).toISOString();
 
-  let targetCols = defaultTargetCols;
+  // For sensor data, we just want time and value
+  let targetCols = ['time', 'value'];
+
+  // For employee_location, we want x,y and accuracy
   if (tableName === 'employee_location') {
     targetCols = ['time', 'x', 'y', 'accuracy'];
   }
@@ -35,7 +37,9 @@ function getUsers() {
   return db('users');
 }
 
+// Get the timestamps of the first and last data points from ANY table
 function getAvailableDateRange() {
+  const tables = ['employee_location', ...sensorDataTables];
   const promises = _.map(tables, (tableName) =>
     db(tableName)
       .min({ min: 'last_measurement_time' })

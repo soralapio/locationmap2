@@ -32,6 +32,7 @@ const lerp = (prevPos, nextPos, time) => {
   };
 };
 
+// The user icons:
 const Avatar = React.memo(({ user }) => {
   const style = {
     transform: `scale(${Math.min(3, 1 / store.mapScale)})`,
@@ -59,6 +60,7 @@ const Avatar = React.memo(({ user }) => {
   );
 });
 
+// Generic tag component, currently only supports user-type tags
 const Tag = ({ tag, x, y }) => (
   <div className="Tag" style={{ transform: `translate(${x}px, ${y}px)` }}>
     {_.get(tag, 'type') === 'user' && <Avatar user={{ ...tag, x, y }} />}
@@ -101,6 +103,7 @@ class Map extends Component {
   }
 
   handleNewProps(props) {
+    // Update current values when time changes
     if (props.seekbarStartTime !== this.props.seekbarStartTime) {
       const currentValues = this.getCurrentValues(props.seekbarStartTime, props);
       this.setState({
@@ -268,9 +271,10 @@ class Map extends Component {
     const mapWidth = store.mapSize.width;
     const mapHeight = store.mapSize.height;
 
+    // Use average illuminance to set the backgound brightness
     const currentMeanIlluminance = _.mean(_.map(this.state.currentIlluminance, 'value')) || 0;
-
     const illuminanceVal = _.clamp(currentMeanIlluminance / store.meanIlluminance, 0.1, 1);
+
     const transitionSpeed = _.max([2000 / this.state.timeMultiplier, 96]);
 
     const dayPickerProps = {
@@ -304,6 +308,7 @@ class Map extends Component {
                 transform: `scale(${store.mapScale})`,
               }}
               onClick={(event) => {
+                // Log coords of click for debug purposes
                 const pos = {
                   x: event.nativeEvent.offsetX,
                   y: event.nativeEvent.offsetY,

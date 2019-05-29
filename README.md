@@ -10,23 +10,14 @@ Open [http://localhost:8000](http://localhost:8000) to view it in the browser.
 The page will reload if you make edits.<br>
 You will also see any lint errors in the console.
 
-## Adding users and sensors
+## Adding sensors
 
-The users and coordinates of the sensors are stored in `backend/configuration.json`
+The coordinates of the sensors are stored in `backend/configuration.json`
 
 The structure of the file should be like this:
 
 ```
 {
-  "users": {
-    "00000001": {
-      "name": "Abraham Example"
-    },
-    "0000002": {
-      "name": "Beatrice Otheruser",
-      "imageURL": "https://url-to-image.file/avatar.jpg"
-    },
-  },
   "sensorLocations": {
     "0000003": {
       "x": 9.04225352112676,

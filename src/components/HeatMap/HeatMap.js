@@ -21,6 +21,7 @@ export default class HeatMap extends Component {
   };
 
   componentDidMount() {
+    // Create heatmap object
     const config = {
       radius: 500,
       maxOpacity: 0.4,
@@ -41,8 +42,10 @@ export default class HeatMap extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    // Update heatmap data only if values have actually changed
     const oldValues = _.map(this.props.values, 'value');
     const newValues = _.map(nextProps.values, 'value');
+
     if (!_.isEqual(oldValues, newValues)) {
       this.heatmap.setData({
         min: 0,

@@ -23,6 +23,7 @@ export default class LoginPage extends Component {
   }
 
   handleKeyDown(event) {
+    // login on Enter-press
     if (event.keyCode === 13) {
       this.login();
     }

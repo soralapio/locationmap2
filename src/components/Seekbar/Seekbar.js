@@ -57,18 +57,21 @@ export default class Seekbar extends React.Component {
     setTime(clampedValue);
   }
 
-  handleMouseUp(event) {
-    this.handleMouseMove(event);
-    document.removeEventListener('mousemove', this.handleMouseMove);
-    document.removeEventListener('mouseup', this.handleMouseUp);
-  }
-
   handleMouseDown() {
+    // When mouse is pressed, start listening to mousemove
     document.addEventListener('mousemove', this.handleMouseMove);
     document.addEventListener('mouseup', this.handleMouseUp);
   }
 
+  handleMouseUp(event) {
+    this.handleMouseMove(event);
+    // When mouse is released, stop listenin to mousemove
+    document.removeEventListener('mousemove', this.handleMouseMove);
+    document.removeEventListener('mouseup', this.handleMouseUp);
+  }
+
   handleKeyDown(event) {
+    // Enable moving backwards and forwards with arrow-keys with acceleration
     const pressedRight = event.key === 'ArrowRight';
     const pressedLeft = event.key === 'ArrowLeft';
     if (pressedRight || pressedLeft) {
@@ -86,6 +89,7 @@ export default class Seekbar extends React.Component {
   }
 
   handleKeyUp(event) {
+    // Reset acceleration
     const letGoRight = event.key === 'ArrowRight';
     const letGoLeft = event.key === 'ArrowLeft';
     if (letGoRight || letGoLeft) {

@@ -23,7 +23,7 @@ async function initStore() {
   } else {
     document.addEventListener('visibilitychange', handleVisibilityChange, false);
   }
-
+  // First check if session is alive
   await store.checkLogin();
 }
 

@@ -8,6 +8,7 @@ export const mapToRange = (val, inMin, inMax, outMin, outMax) =>
   ((val - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 
 // TODO: these need to come from some sort of config:
+// Use these database coordinates to map to the pixel values below
 const rawBounds = {
   minX: 6.71831,
   maxX: 30.94366,
@@ -15,6 +16,7 @@ const rawBounds = {
   maxY: 6.5164, // y seems to be flipped, so maxY < minY
 };
 
+// Use these pixel values to map to the raw database values above
 const pixBounds = {
   minX: 64,
   maxX: 1981,
@@ -22,11 +24,13 @@ const pixBounds = {
   maxY: 692,
 };
 
+// Convert raw database coordinates to pixel values
 export const rawPosToPixelPos = (rawX, rawY) => ({
   x: mapToRange(rawX, rawBounds.minX, rawBounds.maxX, pixBounds.minX, pixBounds.maxX),
   y: mapToRange(rawY, rawBounds.minY, rawBounds.maxY, pixBounds.minY, pixBounds.maxY),
 });
 
+// Convert pixel coordinates to raw database values
 export const pixelPosToRawPos = (pixelX, pixelY) => ({
   x: mapToRange(pixelX, pixBounds.minX, pixBounds.maxX, rawBounds.minX, rawBounds.maxX),
   y: mapToRange(pixelY, pixBounds.minY, pixBounds.maxY, rawBounds.minY, rawBounds.maxY),
@@ -47,6 +51,7 @@ export const extractPropsFromStores = (propsFromStore) => (WrappedComponent) =>
     return <WrappedComponent {...props} {...extractedProps} />;
   });
 
+// Convert mouse "screen" x-position to an x-position inside a DOM element
 export const getMouseXInElement = (mouseX, element) => {
   let left = 0;
   try {
@@ -64,7 +69,6 @@ export const getMouseXInElement = (mouseX, element) => {
  * @param seed
  * @returns {number}
  */
-
 export const sRandom = (seed) => {
   if (_.isNil(seed)) return Math.random();
   /* Force seed to string and calculate hashcode */

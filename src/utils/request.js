@@ -5,7 +5,7 @@ import _ from 'lodash';
 import store from '../stores';
 
 const client = axios.create({
-  baseURL: window.location.hostname === 'localhost' ? '/' : '/map/',
+  baseURL: window.location.hostname === 'localhost' ? '/' : '/map/', // use root when developing
   timeout: 30 * 1000, // 30 seconds
   paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
 });
@@ -13,6 +13,7 @@ const client = axios.create({
 // noop for now
 const handleSuccess = (response) => response;
 
+// Logout on 401
 const handleError = async (error) => {
   const errorStatus = _.get(error, 'response.status');
   if (errorStatus === 401) {

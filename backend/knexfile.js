@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   development: {
-    client: 'sqlite3',
+    client: 'sqlite3', // Using sqlite3 database for development
     connection: {
       filename: path.join(__dirname, '../tools/dev-db/dev.db'),
     },

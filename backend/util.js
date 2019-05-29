@@ -37,7 +37,24 @@ const checkEnvVariables = () => {
   }
 };
 
+// Some values are stored as strings in database but we want them to be floats:
+const parseValues = (array) => {
+  const floatKeys = ['x', 'y', 'value', 'accuracy'];
+  return _.map(array, (obj) => {
+    const parsedObj = {};
+    for (let key of floatKeys) {
+      if (_.has(obj, key)) {
+        parsedObj[key] = parseFloat(obj[key]);
+      }
+    }
+    // also convert time to unix-time milliseconds
+    parsedObj.time = new Date(obj.time).valueOf();
+    return { ...obj, ...parsedObj };
+  });
+};
+
 module.exports = {
   checkEnvVariables,
   envConfig,
+  parseValues,
 };

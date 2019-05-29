@@ -1,5 +1,12 @@
 'use strict';
 
+/*
+
+  THIS FILE CREATES THE SQLITE3 DATABASE USED FOR DEVELOPMENT
+  We assume that there are datafiles (murmur backup json files) for the sensor values located in projectroot/data/
+
+ */
+
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs-extra');

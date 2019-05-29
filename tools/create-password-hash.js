@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 
+// CI-tool used to create a password hash
+
 function main() {
   if (process.argv.length !== 3) {
     console.log('Usage: node create-password-hash.js p4ssw0rd');

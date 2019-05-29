@@ -9,12 +9,15 @@ import autobind from 'auto-bind';
 
 import sensorDataTables from '../sensorDataTables.js';
 
-const LIVE_DELAY = 5000;
+const LIVE_DELAY = 5000; // Polling every 5 seconds when in LIVE mode
 
+// The size of the floorplan image
 const imageSize = {
   width: 2000,
   height: 740,
 };
+
+// Initial scale of the map
 const mapScale = (window.innerWidth * 0.9) / imageSize.width;
 
 class Store {
@@ -26,6 +29,7 @@ class Store {
     this.liveInterval = null;
     _.forEach(sensorDataTables, (dataType) => (this[dataType] = {}));
   }
+
   mapSize = imageSize;
   mapScale = mapScale;
   minDate = null;
