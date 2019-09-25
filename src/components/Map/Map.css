@@ -1,0 +1,180 @@
+.MapContainer {
+  background-color: rgb(0, 0, 40);
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.ZoomPanContainer {
+  position: absolute;
+}
+
+.MapImage {
+  background: url('../../img/floorplan.svg') no-repeat;
+  position: absolute;
+}
+
+.Tag {
+  width: 0px;
+  height: 0px;
+  position: absolute;
+}
+
+.Tag:hover {
+  z-index: 1;
+}
+
+.UserTag {
+  position: absolute;
+  border-radius: 16px;
+  width: 32px;
+  height: 32px;
+  background-size: 32px 32px;
+  background-color: rgba(0,0,0, 0.5);
+  top: -16px;
+  left: -16px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  background-position: center center;
+  transition: transform 160ms ease-in-out;
+}
+
+.UserTag:hover {
+  transform: scale(1.5);
+}
+
+.UserTag:hover .UserName {
+  display: block;
+}
+
+.UserTag .UserName {
+  position: absolute;
+  white-space: nowrap;
+  color: white;
+  font-size: 11px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 3px 5px;
+  border-radius: 3px;
+  top: 6px;
+  left: 36px;
+  display: none;
+  z-index: 10000;
+}
+
+.UserTag .UserName:after {
+  right: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-right-color: rgba(0, 0, 0, 0.7);
+  border-width: 4px;
+  margin-top: -4px;
+}
+
+.DayPickerContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: white;
+  height: 45px;
+  width: 135px;
+  border-bottom-left-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+}
+.DayPickerContainer input {
+  width: 108px;
+  margin-top: 5px;
+  height: 30px;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  box-sizing: content-box;
+  text-align: right;
+  padding-right: 12px;
+  background-color: transparent;
+  font-size: 14px;
+}
+.DayPickerContainer svg {
+  position: absolute;
+  left: 13px;
+  top: 14px;
+  color: #4a4a4a;
+  pointer-events: none;
+}
+.DayPickerContainer .DayPickerInput-OverlayWrapper {
+    position: absolute;
+    right: 290px;
+  }
+.DayPickerContainer .DayPickerInput-Overlay {
+    border-radius: 5px;
+  }
+
+.ControlPanel {
+  border-top: 1px solid rgba(0, 0, 0, 0);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: white;
+  height: 90px;
+}
+
+.PlayButton {
+  width: 35px;
+  height: 35px;
+  border-radius: 5px;
+  background-color: #2ca5b5;
+  color: white;
+  margin: 8px;
+  vertical-align: top;
+  display: inline-block;
+  border: none;
+  font-size: 20px;
+}
+  .PlayButton svg {
+    margin-top: 4px;
+  }
+
+.TimeMultiplierSelect {
+  vertical-align: top;
+  margin-top: 8px;
+  margin-right: 8px;
+  width: 75px;
+  height: 35px;
+  font-size: 14px;
+}
+
+.SeekbarContainer {
+  margin: 8px;
+  padding: 0;
+  position: relative;
+  display: inline-block;
+  height: 35px;
+  width: calc(100vw - 255px);
+}
+
+.CurrentTime {
+  vertical-align: top;
+  height: 35px;
+  margin-top: 8px;
+  line-height: 35px;
+  width: 80px;
+  display: inline-block;
+  font-size: 14px;
+  color: black;
+  margin-right: 20px;
+  font-family: monospace;
+}
+
+.VisibilityToggles {
+  display: flex;
+  justify-content: left;
+}
+
+.VisibilityToggle {
+  padding: 8px;
+}

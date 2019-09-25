@@ -100,6 +100,8 @@ class Store {
       };
       const result = await request.get('/api/data/', { params });
 
+      //console.log(result);
+
       this.positions = this.parsePositions(_.get(result.data, 'employee_location', {}));
 
       _.forEach(sensorDataTables, (dataType) => (this[dataType] = _.get(result.data, dataType, {})));
@@ -165,6 +167,8 @@ class Store {
         id,
         ...rawPosToPixelPos(tag.x, tag.y),
       }));
+//      console.log(result.data.sensorLocations);
+//      console.log(JSON.stringify(this.tags));
     } catch (error) {
       console.error(error);
     }

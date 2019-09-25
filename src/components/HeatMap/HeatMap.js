@@ -66,12 +66,16 @@ export default class HeatMap extends Component {
   }
 
   render() {
+    console.log(JSON.stringify(this.props.values));
     return (
       <div className="HeatMap">
         <div className="HeatContainer" ref={this.containerElement} />
         {_.map(this.props.values, (value) => {
           if (!value) return null;
           const tag = store.tags[value.id];
+          //console.log(JSON.stringify(tag));
+          //if a tag does not exist for a reading (x and y coordinate) we avoid crashing here
+          if(!tag) return null;
           return (
             <div key={value.id} style={{ transform: `translate(${tag.x}px, ${tag.y}px)` }} className="HeatValue">
               {_.round(this.props.transformValue(value.value), 2)} {this.props.label}
